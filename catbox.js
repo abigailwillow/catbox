@@ -99,9 +99,7 @@ command.linkCommand('give', (command, msg, name, amount) => {
 		let user = bot.users.find(a => a.id === name || a.username === name)
 
 		if (user != null) {    
-			let userID = user.id
-
-			changeBalance(userID, amount, _ => {
+			changeBalance(user.id, amount, _ => {
 				msg.channel.send(`${user.username} was granted ${amount} ${pluralize("cat", amount)}`)
 			})
 		}
@@ -125,15 +123,13 @@ command.linkCommand('balance', (command, msg, name) => {
 		}
 	}
 
-	let userID = user.id
-
 	currency = require("./data/currency.json")
 
-	if (currency.hasOwnProperty(userID)) {
-		msg.channel.send(`${user.username} has **${currency[userID]} cats**`)
+	if (currency.hasOwnProperty(user.id)) {
+		msg.channel.send(`**${user.username}** has ${currency[user.id]} cats`)
 	} else {
-		msg.channel.send(`${user.username} has **0 cats**`) // User not found, let's add them to the file.
-		changeBalance(userID, 0)
+		msg.channel.send(`**${user.username}** has 0 cats`) // User not found, let's add them to the file.
+		changeBalance(user.id, 0)
 	}		
 })
 
@@ -158,7 +154,7 @@ bot.on("message", function(msg)
 {
 	msg.content = msg.cleanContent
 
-	if (msg.guild.id == underbox && msg.content.includes(youwhat) && msg.content != youwhat) // Reacts to any message with youwhat
+	if (msg.guild.id == underbox && msg.content.includes(youwhat) && msg.content != youwhat && msg.author.id != bot.user.id) // Reacts to any message with youwhat
 	{
 		msg.react(youwhat.match(/(?<=:)\d+(?=>)/)[0]) // This is super inefficient but whatever
 	}
@@ -166,23 +162,18 @@ bot.on("message", function(msg)
 	if (msg.guild.id == underbox && msg.content == youwhat && msg.author.id != bot.user.id) { sendCat(msg) }
 
 	if (msg.author.bot || msg.content.substring(0, cfg.prefix.length) !== cfg.prefix) { return } // Exit if message is either from a bot or doesn't start with prefix.	
-
 	//I've never actually tested if the above works, but just keep non-commands above that line for now.
 	const args = msg.content.slice(cfg.prefix.length).trim().split(/ +(?=(?:(?:[^"]*"){2})*[^"]*$)/g) // Splice where there are spaces, ignore "between quotes".
 	const cmd = args.shift().toLowerCase() // First argument is now the command, first argument is args[0]
 	
-	for (let i = 0; i < args.length; i++) {
+	for (let i = 0; i < args.length; i++) 
+	{
 		if (args[i].charAt(0) == `"`) { args[i] = args[i].substring(1, args[i].length) }
 		if (args[i].charAt(args[i].length - 1) == `"`) { args[i] = args[i].substring(0, args[i].length - 1) }
 	}
 
-	try {
-		cmds[cmd].command.run(msg, args)
-	} catch (err) {		 
-	 	if (err) {
-	 		msg.channel.send(err)
-	 	}
-	}
+	try { cmds[cmd].command.run(msg, args) } 
+	catch (err) { if (err) { msg.channel.send(err) } }
 })
 
 function print(msg)
@@ -193,21 +184,41 @@ function print(msg)
 
 function sendCat(msg)
 {
-	var catStreak = 0
-	var rng = Math.random()
+	let catStreak = 0
+	let rng = Math.random()
+	let cats = ""
+    while (rng > 0.75) 
 	while (rng > 0.75) 
+    while (rng > 0.75) 
+	while (rng > 0.75) 
+    while (rng > 0.75) 
+	while (rng > 0.75) 
+    while (rng > 0.75) 
+	while (rng > 0.75) 
+    while (rng > 0.75) 
+	while (rng > 0.75) 
+    while (rng > 0.75) 
+	while (rng > 0.75) 
+    while (rng > 0.75) 
+	while (rng > 0.75) 
+    while (rng > 0.75) 
 	{
-		msg.channel.startTyping()
-		setTimeout(function()
-		{
-			msg.channel.send(youwhat)
-			changeBalance(msg.author.id, 1)
-		}, randomDelay(0, 2))
-		msg.channel.stopTyping()
+		cats += youwhat
 		catStreak++
 		rng = Math.random()
 	}
-	saveHighscore(msg.author.id, catStreak)
+	if (catStreak > 0)
+	{
+		saveHighscore(msg.author.id, catStreak)
+		changeBalance(msg.author.id, catStreak)
+		msg.channel.startTyping()
+		setTimeout(function()
+		{
+			msg.channel.send(`**${msg.author.username}** earned ${catStreak} ${pluralize("cat", catStreak)}`)
+			msg.channel.send(cats)
+		}, randomDelay(0, 1))
+		msg.channel.stopTyping()
+	}
 }
 
 function saveHighscore(userID, score)

@@ -1,0 +1,55 @@
+{
+	"help":
+	{
+		"tip": "You are here now.",
+		"args": [],
+		"category": "General",
+		"admin": false,
+		"enabled": true
+	},
+	
+	"about":
+	{
+		"tip": "Display information about the bot.",
+		"args": [],
+		"category": "General",
+		"admin": false,
+		"enabled": true
+	},
+
+	"send":
+	{
+		"tip": "Force the bot to send a message to any channel.",
+		"args": ["string", "string"],
+		"category": "Admin",
+		"admin": false,
+		"enabled": true
+	},
+
+	"leaderboard":
+	{
+		"tip": "Show the top catters.",
+		"args": [],
+		"category": "General",
+		"admin": false,
+		"enabled": true
+	},
+
+	"balance":
+	{
+		"tip": "Shows how many cats you have.",
+		"args": ["string?"],
+		"category": "General",
+		"admin": false,
+		"enabled": true
+	},
+	
+	"give":
+	{
+		"tip": "Spawns cats out of thin air.",
+		"args": ["string", "number"],
+		"category": "Debug",
+		"admin": false,
+		"enabled": true
+	}
+}

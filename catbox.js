@@ -188,20 +188,6 @@ function sendCat(msg)
 	let rng = Math.random()
 	let cats = ""
     while (rng > 0.75) 
-	while (rng > 0.75) 
-    while (rng > 0.75) 
-	while (rng > 0.75) 
-    while (rng > 0.75) 
-	while (rng > 0.75) 
-    while (rng > 0.75) 
-	while (rng > 0.75) 
-    while (rng > 0.75) 
-	while (rng > 0.75) 
-    while (rng > 0.75) 
-	while (rng > 0.75) 
-    while (rng > 0.75) 
-	while (rng > 0.75) 
-    while (rng > 0.75) 
 	{
 		cats += youwhat
 		catStreak++

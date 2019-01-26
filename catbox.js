@@ -123,14 +123,8 @@ command.linkCommand('balance', (command, msg, name) => {
 		}
 	}
 
-	currency = require("./data/currency.json")
-
-	if (currency.hasOwnProperty(user.id)) {
-		msg.channel.send(`**${user.username}** has ${currency[user.id]} cats`)
-	} else {
-		msg.channel.send(`**${user.username}** has 0 cats`) // User not found, let's add them to the file.
-		changeBalance(user.id, 0)
-	}		
+	let bal = getBalance(user.id)
+	msg.channel.send(`**${user.username}** has ${bal} ${pluralize("cat", bal)}`)
 })
 
 const underbox	= '456889532227387403'
@@ -159,7 +153,11 @@ bot.on("message", function(msg)
 		msg.react(youwhat.match(/(?<=:)\d+(?=>)/)[0]) // This is super inefficient but whatever
 	}
 
-	if (msg.guild.id == underbox && msg.content == youwhat && msg.author.id != bot.user.id) { sendCat(msg) }
+	if (msg.guild.id == underbox && msg.content == youwhat && msg.author.id != bot.user.id) 
+	{ 
+		if (getBalance(msg.author.id) > 0) { sendCat(msg) }
+		else { msg.channel.send(txt.warn_no_cats) }
+	}
 
 	if (msg.author.bot || msg.content.substring(0, cfg.prefix.length) !== cfg.prefix) { return } // Exit if message is either from a bot or doesn't start with prefix.	
 	//I've never actually tested if the above works, but just keep non-commands above that line for now.
@@ -200,8 +198,7 @@ function sendCat(msg)
 		msg.channel.startTyping()
 		setTimeout(function()
 		{
-			msg.channel.send(`**${msg.author.username}** earned ${catStreak} ${pluralize("cat", catStreak)}`)
-			msg.channel.send(cats)
+			msg.channel.send(`**${msg.author.username}** earned ${catStreak} ${pluralize("cat", catStreak)}\n${cats}`)
 		}, randomDelay(0, 1))
 		msg.channel.stopTyping()
 	}
@@ -239,6 +236,18 @@ function changeBalance(userID, amount, callback)
 	if (callback) {
 		callback()
 	}
+}
+
+function getBalance(userID)
+{
+	currency = require("./data/currency.json")
+	let bal = 0
+
+	if (currency.hasOwnProperty(userID)) 
+	{
+		bal = currency[userID]
+	}
+	return bal
 }
 
 async function readData(guildID, key)

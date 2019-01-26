@@ -2,6 +2,7 @@
 	"err_no_admin": "You need to be an administrator to use this command.",
 	"err_no_op": "You need to be an operator to use this command.",
 	"err_invalid_arg": "Invalid argument, expected a ",
+	"warn_no_cats": "You have no more cats. You'll get some new ones soon.",
 	"ad_brand": "Encrypted Laser",
 	"hosting_ad": "This bot is hosted with [PrimeNodes](https://primenodes.com/t/hybrid).\nIf you want affordable quality hosting for your own Discord bot use code **COSMOS** for 5% off on any VPS, or 10% off any [Encrypted Laser](https://account.elhostingservices.com/aff.php?aff=82) game server."
 }

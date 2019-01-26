@@ -64,12 +64,10 @@ command.linkCommand('leaderboard', (command, msg) => {
 	leaderboard = require("./data/leaderboard.json")
 	currency = require("./data/currency.json")
 
-	let total = Object.keys(leaderboard).length
-	let topTen = Object.keys(leaderboard).sort(function(a, b) { return leaderboard[a] - leaderboard[b] } )
-	topTen = topTen.reverse().slice(0, Math.min(topTen.length, 10))
-
-	let topFive = Object.keys(currency).sort(function(a, b) { return currency[a] - currency[b] } )
-	topFive = topFive.reverse().slice(0, Math.min(topFive.length, 5))
+	let topDollar = Object.keys(currency).sort(function(a, b) { return currency[a] - currency[b] } )
+	topDollar = topDollar.reverse().slice(0, Math.min(topDollar.length, 10))
+	let topStreak = Object.keys(leaderboard).sort(function(a, b) { return leaderboard[a] - leaderboard[b] } )
+	topStreak = topStreak.reverse().slice(0, Math.min(topStreak.length, 5))
 
 	let streakStr = ""
 	let richStr = ""
@@ -77,23 +75,21 @@ command.linkCommand('leaderboard', (command, msg) => {
 	.setAuthor('Catbox Leaderboard', 'https://cdn.discordapp.com/attachments/456889532227387405/538354324028260377/youwhat_hd.png')
 	.setColor(cfg.embedcolor)
 	.setTimestamp()
-	for (let i = 0; i < topTen.length; i++) {
-		const score = leaderboard[topTen[i]];
-		streakStr += `\`${('0' + (i + 1)).slice(-2)}.\` ${score} ${pluralize("cat", score)} - **${bot.users.get(topTen[i]).username}**\n`
+
+	for (let i = 0; i < topDollar.length; i++) {
+		const bal = currency[topDollar[i]];
+		richStr += `\`${('0' + (i + 1)).slice(-2)}.\` ${bal} ${pluralize("cat", bal)} - **${bot.users.get(topDollar[i]).username}**\n`
+	}
+	embed.addField('10 Richest Users', richStr)
+
+	embed.addBlankField()
+
+	for (let i = 0; i < topStreak.length; i++) {
+		const score = leaderboard[topStreak[i]];
+		streakStr += `\`${('0' + (i + 1)).slice(-2)}.\` ${score} ${pluralize("cat", score)} - **${bot.users.get(topStreak[i]).username}**\n`
 	}
 
-	// if (total > topTen.length) { 
-	// 	streakStr += `\nand ${total - topTen.length} ${pluralize("other", total - topTen)}.` 
-	// }
-
-	embed.addField('Top 10 Catstreaks', streakStr)
-
-	for (let i = 0; i < topFive.length; i++) {
-		const bal = currency[topFive[i]];
-		richStr += `\`${('0' + (i + 1)).slice(-2)}.\` ${bal} ${pluralize("cat", bal)} - **${bot.users.get(topFive[i]).username}**\n`
-	}
-
-	embed.addField('Top 5 Richest Users', richStr)
+	embed.addField('5 Highests Catstreaks', streakStr)
 	msg.channel.send({embed})
 })
 

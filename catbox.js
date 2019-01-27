@@ -215,7 +215,7 @@ bot.on("message", (msg) =>
 {
 	msg.content = msg.cleanContent
 
-	if (maintenance && !msg.content === `${cfg.prefix}maintenance false`) { return }
+	if (maintenance && msg.content !== `${cfg.prefix}maintenance false`) { return }
 
 	if (msg.guild.id == underbox && msg.content.includes(youwhat) && msg.content != youwhat && msg.author.id != bot.user.id) // Reacts to any message with youwhat
 	{

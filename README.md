@@ -10,5 +10,5 @@ You send it a cat, and it might send you one back. Magical...
 **NOTE:** Data is currently broken, you should create a folder called `backups`, a file called "currency.json" and a file called "leaderboard.json" in `/data`. All should work after adding "{}" in both files. If you can't figure it out feel free to contact me or whatever.
 
 ## Cat
-Thanks to everyone who helped me with this project. Here's a cat.
+Thanks to everyone who helped me with this project. Here's a cat.  
 ![You What](https://i.imgur.com/gcuYgnP.png)

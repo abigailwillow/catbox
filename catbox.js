@@ -95,16 +95,25 @@ command.linkCommand('leaderboard', (command, msg) => {
 
 command.linkCommand('give', (command, msg, name, amount) => {
 	if (cfg.operators.includes(msg.author.id)) {
-		
-		let user = bot.users.find(a => a.id === name || a.username === name)
-
-		if (user != null) {    
-			changeBalance(user.id, amount, _ => {
-				msg.channel.send(`${user.username} was granted ${amount} ${pluralize("cat", amount)}`)
-			})
+		if (name === "*")
+		{
+			msg.guild.members.forEach(user => {
+				changeBalance(user.id, amount)
+			});
+			msg.channel.send(`**Everyone** was granted ${amount} ${pluralize("cat", amount)}`)
 		}
-		else { 
-			msg.channel.send('Could not find that user.') 
+		else
+		{
+			let user = bot.users.find(a => a.id === name || a.username === name)
+
+			if (user != null) {
+				changeBalance(user.id, amount, _ => {
+					msg.channel.send(`**${user.username}** was granted ${amount} ${pluralize("cat", amount)}`)
+				})
+			}
+			else { 
+				msg.channel.send('Could not find that user.') 
+			}
 		}
 	} else { 
 		msg.channel.send('Only Galaxy and Krypt can spawn cats out of thin air.') 
@@ -185,7 +194,7 @@ function sendCat(msg)
 	let catStreak = 0
 	let rng = Math.random()
 	let cats = ""
-    while (rng > 0.75) 
+    while (rng > 0.5) 
 	{
 		cats += youwhat
 		catStreak++

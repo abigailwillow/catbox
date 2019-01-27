@@ -6,12 +6,30 @@ const cmds 		= require("./cfg/commands.json")
 const txt		= require("./res/strings.json")
 const command 	= require("./lib/commandhandler.js")
 var leaderboard = require("./data/leaderboard.json")
-var currency	= require("./data/currency.json")	
+var currency	= require("./data/currency.json")
 
 command.init(bot, cmds)
 
 command.linkCommand('help', (command, msg) => {
-	msg.channel.send("This should display all commands but I'm lazy, sorry.")
+	let categories = []
+	Object.keys(cmds).forEach(cmd => {
+		if (!categories.includes(cmds[cmd].category)) { categories.push(cmds[cmd].category) }
+	}); 
+	let embed = new discord.RichEmbed()
+	.setAuthor('Catbox Commands', 'https://cdn.discordapp.com/attachments/456889532227387405/538354324028260377/youwhat_hd.png')
+	.setColor(cfg.embedcolor)
+	.setTimestamp()
+	categories.forEach(cat => {
+		let txt = ""
+		Object.keys(cmds).forEach(cmd => {
+			if (cmds[cmd].category === cat)
+			{
+				txt += `\`${cfg.prefix}${cmd}\`­­­­­­­­­­­­­­­ -> ${cmds[cmd].tip}\n`
+			}
+		});
+		embed.addField(cat + "commands", txt)
+	});
+	msg.channel.send({embed})
 })
 
 command.linkCommand('about', (command, msg) => {
@@ -136,8 +154,25 @@ command.linkCommand('balance', (command, msg, name) => {
 	msg.channel.send(`**${user.username}** has ${bal} ${pluralize("cat", bal)}`)
 })
 
+setInterval(() => {
+	let d = new Date()
+	if (d.getMinutes() === 0)
+	{
+		file.copyFileSync("./data/currency.json", `./data/backups/currency-${d.toISOString().substr(0, 13)}.json`)
+		file.copyFileSync("./data/leaderboard.json", `./data/backups/leaderboard-${d.toISOString().substr(0, 13)}.json`)
+		bot.users.forEach(user => {
+			changeBalance(user.id, 2)
+		});
+		bot.guilds.forEach(guild => {
+			guild.channels.find(x => x.name === "cat").send(`**Everyone** was granted 2 cats`)
+		});
+		print("Hourly cats were succesfully given out.")
+	}
+}, 60000);
+
 const underbox	= '456889532227387403'
 const youwhat	= '<:youwhat:534811127461445643>'
+const odds		= 0.5
 
 // Events
 bot.on("ready", function()
@@ -191,10 +226,11 @@ function print(msg)
 
 function sendCat(msg)
 {
+	changeBalance(msg.author.id, -1)
 	let catStreak = 0
 	let rng = Math.random()
 	let cats = ""
-    while (rng > 0.5) 
+    while (rng >= odds)
 	{
 		cats += youwhat
 		catStreak++
@@ -207,7 +243,7 @@ function sendCat(msg)
 		msg.channel.startTyping()
 		setTimeout(function()
 		{
-			msg.channel.send(`**${msg.author.username}** earned ${catStreak} ${pluralize("cat", catStreak)}\n${cats}`)
+			msg.channel.send(`**${msg.author.username}** earned ${catStreak} ${pluralize("cat", catStreak)} (${(Math.pow(odds, catStreak) * 100).toFixed(2)}% chance)\n${cats}`)
 		}, randomDelay(0, 1))
 		msg.channel.stopTyping()
 	}

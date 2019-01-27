@@ -7,6 +7,7 @@ const txt		= require("./res/strings.json")
 const command 	= require("./lib/commandhandler.js")
 var leaderboard = require("./data/leaderboard.json")
 var currency	= require("./data/currency.json")
+var maintenance = false
 
 command.init(bot, cmds)
 
@@ -27,7 +28,7 @@ command.linkCommand('help', (command, msg) => {
 				txt += `\`${cfg.prefix}${cmd}\`­­­­­­­­­­­­­­­ -> ${cmds[cmd].tip}\n`
 			}
 		});
-		embed.addField(cat + "commands", txt)
+		embed.addField(cat + " commands", txt)
 	});
 	msg.channel.send({embed})
 })
@@ -71,10 +72,10 @@ command.linkCommand('send', (command, msg, name, message) => {
 
 			msg.delete()
 		} else {
-			msg.channel.send("That channel does not exist.")
+			msg.channel.send(txt.err_no_channel)
 		}
 	} else {
-		msg.channel.send("You're not authorized to use this command.")
+		msg.channel.send(txt.err_no_operator)
 	}
 })
 
@@ -154,6 +155,28 @@ command.linkCommand('balance', (command, msg, name) => {
 	msg.channel.send(`**${user.username}** has ${bal} ${pluralize("cat", bal)}`)
 })
 
+command.linkCommand('maintenance', (command, msg, bool) => {
+	let user = msg.author
+	if (cfg.operators.includes(user.id))
+	{
+		if (bool)
+		{
+			bot.guilds.forEach(guild => {
+				guild.members.get(bot.user.id).setNickname(bot.user.username + " (maintenance)")
+			});
+			msg.channel.send("Maintenance mode enabled.")
+		}
+		else
+		{
+			bot.guilds.forEach(guild => {
+				guild.members.get(bot.user.id).setNickname(bot.user.username)
+			});
+			msg.channel.send("Maintenance mode disabled.")
+		}
+		maintenance = bool
+	}
+})
+
 setInterval(() => {
 	let d = new Date()
 	if (d.getMinutes() === 0)
@@ -175,7 +198,7 @@ const youwhat	= '<:youwhat:534811127461445643>'
 const odds		= 0.5
 
 // Events
-bot.on("ready", function()
+bot.on("ready", () =>
 {
 	print(`Logged in as ${bot.user.tag}!`)
 	print(`Currently serving ${bot.guilds.size} servers and ${bot.users.size} users.\n`)
@@ -186,11 +209,13 @@ bot.on("ready", function()
 			type: cfg.activityType.toUpperCase()
 		}
 	})
-})
+});
 
-bot.on("message", function(msg)
+bot.on("message", (msg) =>
 {
 	msg.content = msg.cleanContent
+
+	if (maintenance && !msg.content === `${cfg.prefix}maintenance false`) { return }
 
 	if (msg.guild.id == underbox && msg.content.includes(youwhat) && msg.content != youwhat && msg.author.id != bot.user.id) // Reacts to any message with youwhat
 	{
@@ -216,7 +241,7 @@ bot.on("message", function(msg)
 
 	try { cmds[cmd].command.run(msg, args) } 
 	catch (err) { if (err) { msg.channel.send(err) } }
-})
+});
 
 function print(msg)
 {

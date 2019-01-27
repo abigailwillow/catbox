@@ -51,5 +51,14 @@
 		"category": "Debug",
 		"admin": false,
 		"enabled": true
+	},
+
+	"maintenance":
+	{
+		"tip": "Toggle maintenance mode.",
+		"args": ["boolean"],
+		"category": "Debug",
+		"admin": false,
+		"enabled": true
 	}
 }

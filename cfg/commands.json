@@ -4,7 +4,7 @@
 		"tip": "You are here now.",
 		"args": [],
 		"category": "General",
-		"admin": false,
+		"admin": 0,
 		"enabled": true
 	},
 	
@@ -13,7 +13,7 @@
 		"tip": "Display information about the bot.",
 		"args": [],
 		"category": "General",
-		"admin": false,
+		"admin": 0,
 		"enabled": true
 	},
 
@@ -22,7 +22,7 @@
 		"tip": "Force the bot to send a message to any channel.",
 		"args": ["string", "string"],
 		"category": "Admin",
-		"admin": false,
+		"admin": 1,
 		"enabled": true
 	},
 
@@ -31,7 +31,7 @@
 		"tip": "Show the top catters.",
 		"args": [],
 		"category": "General",
-		"admin": false,
+		"admin": 0,
 		"enabled": true
 	},
 
@@ -40,7 +40,7 @@
 		"tip": "Shows how many cats you have.",
 		"args": ["string?"],
 		"category": "General",
-		"admin": false,
+		"admin": 0,
 		"enabled": true
 	},
 	
@@ -49,7 +49,7 @@
 		"tip": "Spawns cats out of thin air.",
 		"args": ["string", "number"],
 		"category": "Debug",
-		"admin": false,
+		"admin": 2,
 		"enabled": true
 	},
 
@@ -58,7 +58,7 @@
 		"tip": "Toggle maintenance mode.",
 		"args": ["boolean"],
 		"category": "Debug",
-		"admin": false,
+		"admin": 2,
 		"enabled": true
 	}
 }

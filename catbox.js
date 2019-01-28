@@ -51,32 +51,22 @@ command.linkCommand('about', (command, msg) => {
 				},
 				{
 					name: "Hosting",
-					value: txt.hosting_ad
+					value: txt.ad_text
 				}
 			],
 			footer: 
 			{
 			  icon_url: cfg.about_img,
-			  text: txt.ad_brand
+			  text: txt.ad_title
 			}
 		}
 	})
 })
 
 command.linkCommand('send', (command, msg, name, message) => {
-	if (cfg.operators.includes(msg.author.id)) {
-		let channel = bot.channels.find(x => x.name === name) 
-
-		if (channel != null) {
-			channel.send(message)
-
-			msg.delete()
-		} else {
-			msg.channel.send(txt.err_no_channel)
-		}
-	} else {
-		msg.channel.send(txt.err_no_operator)
-	}
+	let channel = msg.guild.channels.find(x => x.name === name)
+	if (channel != null) { channel.send(message) }
+	else { msg.channel.send(txt.err_no_channel) }
 })
 
 command.linkCommand('leaderboard', (command, msg) => {
@@ -113,41 +103,34 @@ command.linkCommand('leaderboard', (command, msg) => {
 })
 
 command.linkCommand('give', (command, msg, name, amount) => {
-	if (cfg.operators.includes(msg.author.id)) {
-		if (name === "*")
-		{
-			msg.guild.members.forEach(user => {
-				changeBalance(user.id, amount)
-			});
-			msg.channel.send(`**Everyone** was granted ${amount} ${pluralize("cat", amount)}`)
-		}
-		else
-		{
-			let user = bot.users.find(a => a.id === name || a.username === name)
+	if (name === '*')
+	{
+		msg.guild.members.forEach(user => {
+			changeBalance(user.id, amount)
+		});
+		msg.channel.send(`**Everyone** has received ${amount} ${pluralize("cat", amount)}.`)
+	}
+	else
+	{
+		let user = bot.users.find(a => a.id === name || a.username.toLowerCase() === name.toLowerCase())
 
-			if (user != null) {
-				changeBalance(user.id, amount, _ => {
-					msg.channel.send(`**${user.username}** was granted ${amount} ${pluralize("cat", amount)}`)
-				})
-			}
-			else { 
-				msg.channel.send('Could not find that user.') 
-			}
+		if (user != null) {
+			changeBalance(user.id, amount, _ => {
+				msg.channel.send(`**${user.username}** was granted ${amount} ${pluralize("cat", amount)}`)
+			})
 		}
-	} else { 
-		msg.channel.send('Only Galaxy and Krypt can spawn cats out of thin air.') 
-	}	
+		else { msg.channel.send(txt.err_no_user) }
+	}
 })
 
 command.linkCommand('balance', (command, msg, name) => {
 	let user = msg.author
 
 	if (name) {
-		user = bot.users.find(a => a.id === name || a.username === name)
+		user = bot.users.find(a => a.id === name || a.username.toLowerCase() === name.toLowerCase())
 
-		if (user == null) {    
-			msg.channel.send('Could not find that user.')
-			return
+		if (user == null) {
+			msg.channel.send(txt.err_no_user); return
 		}
 	}
 
@@ -156,25 +139,23 @@ command.linkCommand('balance', (command, msg, name) => {
 })
 
 command.linkCommand('maintenance', (command, msg, bool) => {
-	let user = msg.author
-	if (cfg.operators.includes(user.id))
+	if (bool)
 	{
-		if (bool)
-		{
-			bot.guilds.forEach(guild => {
-				guild.members.get(bot.user.id).setNickname(bot.user.username + " (maintenance)")
-			});
-			msg.channel.send("Maintenance mode enabled.")
-		}
-		else
-		{
-			bot.guilds.forEach(guild => {
-				guild.members.get(bot.user.id).setNickname(bot.user.username)
-			});
-			msg.channel.send("Maintenance mode disabled.")
-		}
-		maintenance = bool
+		bot.guilds.forEach(guild => {
+			guild.members.get(bot.user.id).setNickname(bot.user.username + " (maintenance)")
+		});
+		msg.channel.send("Maintenance mode enabled.")
+		print("Maintenance mode enabled.")
 	}
+	else
+	{
+		bot.guilds.forEach(guild => {
+			guild.members.get(bot.user.id).setNickname(bot.user.username)
+		});
+		msg.channel.send("Maintenance mode disabled.")
+		print("Maintenance mode disabled.")
+	}
+	maintenance = bool
 })
 
 setInterval(() => {
@@ -187,9 +168,9 @@ setInterval(() => {
 			changeBalance(user.id, 2)
 		});
 		bot.guilds.forEach(guild => {
-			guild.channels.find(x => x.name === "cat").send(`**Everyone** was granted 2 cats`)
+			guild.channels.find(x => x.name === "cat").send(`**Everyone** has received 2 cats.`)
 		});
-		print("Hourly cats were succesfully given out.")
+		print("Backups were made and hourly cats given out.")
 	}
 }, 60000);
 
@@ -228,10 +209,10 @@ bot.on("message", (msg) =>
 		else { msg.channel.send(txt.warn_no_cats) }
 	}
 
-	if (msg.author.bot || msg.content.substring(0, cfg.prefix.length) !== cfg.prefix) { return } // Exit if message is either from a bot or doesn't start with prefix.	
-	//I've never actually tested if the above works, but just keep non-commands above that line for now.
-	const args = msg.content.slice(cfg.prefix.length).trim().split(/ +(?=(?:(?:[^"]*"){2})*[^"]*$)/g) // Splice where there are spaces, ignore "between quotes".
-	const cmd = args.shift().toLowerCase() // First argument is now the command, first argument is args[0]
+	// Return if message is either from a bot or doesn't start with command prefix. Keep non-commands above this line.
+	if (msg.author.bot || msg.content.substring(0, cfg.prefix.length) !== cfg.prefix) { return }	
+	const args = msg.content.slice(cfg.prefix.length).trim().split(/ +(?=(?:(?:[^"]*"){2})*[^"]*$)/g)
+	const cmd = args.shift().toLowerCase()
 	
 	for (let i = 0; i < args.length; i++) 
 	{
@@ -240,7 +221,7 @@ bot.on("message", (msg) =>
 	}
 
 	try { cmds[cmd].command.run(msg, args) } 
-	catch (err) { if (err) { msg.channel.send(err) } }
+	catch (err) { if (err) { msg.channel.send(replaceVar(txt.err_invalid_cmd, cfg.prefix)) } }
 });
 
 function print(msg)
@@ -303,7 +284,7 @@ function changeBalance(userID, amount, callback)
 
 	file.writeFile(filename, JSON.stringify(currency), (err) => {})
 
-	if (callback) {
+	if (callback != null) {
 		callback()
 	}
 }
@@ -320,6 +301,7 @@ function getBalance(userID)
 	return bal
 }
 
+// Both read and write are fucking borked, I should fix that maybe.
 async function readData(guildID, key)
 {
 	var filename = './data/' + guildID + '.json'
@@ -329,7 +311,7 @@ async function readData(guildID, key)
 	}
 	return data[key]
 }
-// Both read and write are fucking borked, I should fix that maybe.
+
 async function writeData(guildID, key, value)
 {
 	var filename = './data/' + guildID + '.json'
@@ -361,20 +343,15 @@ function randomDelay(min, max)
 	return (Math.random() + min) * max
 }
 
-function typeMessage(channel, msg, minDelay, maxDelay)
-{
-	channel.startTyping()
-	setTimeout(function()
-	{
-		channel.send(msg)
-	}, randomDelay(minDelay, maxDelay))
-	channel.stopTyping()
-}
-
-function pluralize(word, count) // Fast cheap way to dynamically pluralize a word with "s".
+function pluralize(word, count)
 {
 	if (count != 1) { return word + "s" }
 	else { return word }
+}
+
+function replaceVar(str, arg)
+{
+	return str.replace(/%\w+%/g, arg)
 }
 
 bot.login(cfg.token)

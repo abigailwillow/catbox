@@ -60,5 +60,14 @@
 		"category": "Debug",
 		"admin": 2,
 		"enabled": true
+	},
+
+	"bet":
+	{
+		"tip": "Start a new betting round or join an existing one.",
+		"args": ["number"],
+		"category": "General",
+		"admin": 0,
+		"enabled": true
 	}
 }

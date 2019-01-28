@@ -8,6 +8,7 @@ const command 	= require("./lib/commandhandler.js")
 var leaderboard = require("./data/leaderboard.json")
 var currency	= require("./data/currency.json")
 var maintenance = false
+var betRound	= { roundTime: 30, roundInterval: 5, inProgress: false, total: 0, players: {} }
 
 command.init(bot, cmds)
 
@@ -158,6 +159,47 @@ command.linkCommand('maintenance', (command, msg, bool) => {
 	maintenance = bool
 })
 
+command.linkCommand('bet', (command, msg, amount) => {
+	let roundMsg = null; let user = msg.author
+	if (getBalance(user.id) < amount) { msg.channel.send(txt.err_no_cats); return }
+	if (amount <= 0) { msg.channel.send(txt.err_invalid_amt); return }
+	changeBalance(user.id, -amount)
+	betRound.total += amount
+	if (betRound.players.hasOwnProperty(user.id)) {
+		msg.channel.send(`**${user.username}** added ${amount} ${pluralize("cat", amount)}.`)
+		betRound.players[user.id] += amount
+		return
+	} else {
+		betRound.players[user.id] = amount
+	}
+
+	if (!betRound.inProgress)
+	{
+		betRound.inProgress = true
+		betRound.startTime = new Date().getTime()
+		msg.channel.send(`**${user.username}** just started a betting round with ${amount} ${pluralize("cat", amount)}! You have ${betRound.roundTime} seconds to join in!`)
+		msg.channel.send(generateRoundEmbed()).then(msg => roundMsg = msg)
+		var IID = setInterval(() => { roundMsg.edit("", generateRoundEmbed()) }, betRound.roundInterval * 1000);
+		setTimeout(() => {
+			clearInterval(IID)
+			roundMsg.edit("", generateRoundEmbed())
+
+			let winner = undefined; let winNum = Math.random(); let total = 0;
+			Object.keys(betRound.players).forEach(ply => {
+				total += betRound.players[ply] / betRound.total
+				if (total >= winNum && winner == undefined) { winner = ply }
+			});
+			msg.channel.send(`**${bot.users.get(winner).username}** won ${betRound.total} ${pluralize("cat", betRound.total)} with a ${((betRound.players[winner] / betRound.total) * 100).toFixed(2)}% chance!`)
+			changeBalance(winner, betRound.total)
+			betRound.inProgress = false; betRound.total = 0; betRound.players = {}
+		}, betRound.roundTime * 1000);
+	}
+	else
+	{
+		msg.channel.send(`**${user.username}** joined the current betting round with ${amount} ${pluralize("cat", amount)} (${((amount / betRound.total) * 100).toFixed(2)}% chance).`)
+	}
+})
+
 setInterval(() => {
 	let d = new Date()
 	if (d.getMinutes() === 0)
@@ -170,6 +212,7 @@ setInterval(() => {
 		bot.guilds.forEach(guild => {
 			guild.channels.find(x => x.name === "cat").send(`**Everyone** has received 2 cats.`)
 		});
+		cooldowns = {}
 		print("Backups were made and hourly cats given out.")
 	}
 }, 60000);
@@ -177,6 +220,7 @@ setInterval(() => {
 const underbox	= '456889532227387403'
 const youwhat	= '<:youwhat:534811127461445643>'
 const odds		= 0.5
+var cooldowns 	= {}
 
 // Events
 bot.on("ready", () =>
@@ -210,7 +254,12 @@ bot.on("message", (msg) =>
 	}
 
 	// Return if message is either from a bot or doesn't start with command prefix. Keep non-commands above this line.
-	if (msg.author.bot || msg.content.substring(0, cfg.prefix.length) !== cfg.prefix) { return }	
+	if (msg.author.bot || msg.content.substring(0, cfg.prefix.length) !== cfg.prefix) { return }
+
+	let t = new Date().getTime()
+	if (cooldowns[msg.author.id] > t) { msg.channel.send(txt.warn_cooldown); return }
+	else { cooldowns[msg.author.id] = t + cfg.cooldown }
+
 	const args = msg.content.slice(cfg.prefix.length).trim().split(/ +(?=(?:(?:[^"]*"){2})*[^"]*$)/g)
 	const cmd = args.shift().toLowerCase()
 	
@@ -221,7 +270,8 @@ bot.on("message", (msg) =>
 	}
 
 	try { cmds[cmd].command.run(msg, args) } 
-	catch (err) { if (err) { msg.channel.send(replaceVar(txt.err_invalid_cmd, cfg.prefix)) } }
+	catch (err) { if (err.name === 'TypeError') { msg.channel.send(replaceVar(txt.err_invalid_cmd, cfg.prefix)) }
+	else { msg.channel.send(err) } }
 });
 
 function print(msg)
@@ -253,6 +303,23 @@ function sendCat(msg)
 		}, randomDelay(0, 1))
 		msg.channel.stopTyping()
 	}
+}
+
+function generateRoundEmbed()
+{
+	let pList = ""
+	let embed = new discord.RichEmbed()
+	.setAuthor(`Betting Round - Total: ${betRound.total} ${pluralize("cat", betRound.total)}`, 'https://cdn.discordapp.com/attachments/456889532227387405/538354324028260377/youwhat_hd.png')
+	.setColor(cfg.embedcolor)
+	Object.keys(betRound.players).forEach(ply => {
+		let curAmount = betRound.players[ply]
+		pList += `${curAmount} ${pluralize("cat", curAmount)} (${((curAmount / betRound.total) * 100).toFixed(2)}%) - **${bot.users.get(ply).username}**\n`
+	});
+	embed.setDescription(pList)
+	let timeLeft = Math.round(betRound.roundTime - (new Date().getTime() - betRound.startTime) / 1000)
+	embed.setFooter(`${timeLeft} seconds left.`)
+	if (timeLeft <= 0) {embed.setFooter('This round is over.')}
+	return embed
 }
 
 function saveHighscore(userID, score)

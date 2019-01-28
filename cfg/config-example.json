@@ -4,7 +4,8 @@
 	"activityType": "playing",
 	"activity": "type -help for info.",
 	"author": "144127590968459264",
+	"operators": ["144127590968459264", "205306963444236288"],
+	"cooldown": 1000,
 	"embedcolor": 16752762,
-	"about_img": "http://elhs.co/assets/branding/White_Logo.png",
-	"operators": ["144127590968459264", "205306963444236288"]
+	"about_img": "http://elhs.co/assets/branding/White_Logo.png"
 }

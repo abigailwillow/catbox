@@ -100,8 +100,6 @@ command.linkCommand('leaderboard', (command, msg) => {
 
 	for (let i = 0; i < highestStreaks.length; i++) {
 		const score = leaderboard[highestStreaks[i]];
-		print(`${i} -> ${highestStreaks[i]}`)
-		print(`${i} -> ${bot.users.get(highestStreaks[i]).username}`)
 		streakStr += `\`${('0' + (i + 1)).slice(-2)}.\` ${score} ${pluralize("cat", score)} - **${bot.users.get(highestStreaks[i]).username}**\n`
 	}
 

@@ -509,7 +509,7 @@ function randomDelay(min, max)
 
 function pluralize(word, count)
 {
-	if (count != 1) { return word + "s" }
+	if (Math.abs(count) != 1) { return word + "s" }
 	else { return word }
 }
 

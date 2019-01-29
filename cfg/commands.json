@@ -69,5 +69,14 @@
 		"category": "General",
 		"admin": 0,
 		"enabled": true
+	},
+	
+	"guess":
+	{
+		"tip": "Start a new guessing round or join an existing one. The user with the closest guess wins.",
+		"args": ["number", "number"],
+		"category": "General",
+		"admin": 0,
+		"enabled": true
 	}
 }

@@ -9,6 +9,7 @@ var leaderboard = require("./data/leaderboard.json")
 var currency	= require("./data/currency.json")
 var maintenance = false
 var betRound	= { roundTime: 30, roundInterval: 5, inProgress: false, total: 0, players: {} }
+var guessRound	= { roundTime: 30, roundInterval: 5, inProgress: false, total: 0, players: {}, number: 0 }
 
 command.init(bot, cmds)
 
@@ -157,6 +158,82 @@ command.linkCommand('maintenance', (command, msg, bool) => {
 		print("Maintenance mode disabled.")
 	}
 	maintenance = bool
+})
+
+command.linkCommand('guess', (command, msg, amount, guess) => {
+	let roundMsg = null; let user = msg.author
+
+	if (getBalance(user.id) < amount) { 
+		msg.channel.send(txt.err_no_cats); return 
+	}
+	
+	Object.keys(guessRound.players).forEach(ply => {
+		let g = guessRound.players[ply].guess
+
+		if (g == guess) {
+			msg.channel.send(`**${user.username}** please choose a unique number.`)
+			return
+		}
+	});
+
+	if (amount <= 0) { 
+		msg.channel.send(txt.err_invalid_amt); 
+		return
+	 }
+
+	if (guess < 0 || guess > 100) { 
+		msg.channel.send("Guess must be a number from 0 to 100."); 
+		return 
+	}
+
+	changeBalance(user.id, -amount)
+
+	guessRound.number = Math.round(Math.random() * 100)
+	guessRound.total += amount
+
+	if (guessRound.players.hasOwnProperty(user.id)) {
+		msg.channel.send(`**${user.username}** changed their guess :angry:`)
+		guessRound.players[user.id] = {betamount: amount, guess: guess}
+		return
+	} else {
+		guessRound.players[user.id] = {betamount: amount, guess: guess}
+	}
+
+	if (!guessRound.inProgress) {
+		guessRound.inProgress = true
+		guessRound.startTime = new Date().getTime()
+		msg.channel.send(`**${user.username}** just started a guessing round with ${amount} ${pluralize("cat", amount)}! You have ${guessRound.roundTime} seconds to join in!`)
+		msg.channel.send(generateGuessRoundEmbed()).then(msg => roundMsg = msg)
+		var IID = setInterval(() => { roundMsg.edit("", generateGuessRoundEmbed()) }, guessRound.roundInterval * 1000);
+		setTimeout(() => {
+			clearInterval(IID)
+			roundMsg.edit("", generateGuessRoundEmbed())
+
+			let winner = undefined; 
+			let bestnum = -1;
+
+			Object.keys(guessRound.players).forEach(ply => {
+				let player = guessRound.players[ply]
+
+				let difference = 100 - player.guess + guessRound.number
+
+				if (player.guess <= guessRound.number) {
+					difference = guessRound.number -  player.guess
+				}
+
+				if (difference > bestnum) {
+					bestnum = difference
+					winner = ply
+				}
+			});
+
+			msg.channel.send(`**${bot.users.get(winner).username}** won ${guessRound.total} ${pluralize("cat", guessRound.total)} with a difference of ${bestnum}. The number was ${guessRound.number}.`)
+			changeBalance(winner, guessRound.total)
+			guessRound.inProgress = false; guessRound.total = 0; guessRound.players = {}
+		}, guessRound.roundTime * 1000);
+	} else {
+		msg.channel.send(`**${user.username}** joined the current guessing round with ${amount} ${pluralize("cat", amount)} and the number ${guess}.`)
+	}
 })
 
 command.linkCommand('bet', (command, msg, amount) => {
@@ -317,6 +394,24 @@ function generateRoundEmbed()
 	});
 	embed.setDescription(pList)
 	let timeLeft = Math.round(betRound.roundTime - (new Date().getTime() - betRound.startTime) / 1000)
+	embed.setFooter(`${timeLeft} seconds left.`)
+	if (timeLeft <= 0) {embed.setFooter('This round is over.')}
+	return embed
+}
+
+function generateGuessRoundEmbed()
+{
+	let pList = ""
+	let embed = new discord.RichEmbed()
+	.setAuthor(`Betting Round - Total: ${guessRound.total} ${pluralize("cat", guessRound.total)}`, 'https://cdn.discordapp.com/attachments/456889532227387405/538354324028260377/youwhat_hd.png')
+	.setColor(cfg.embedcolor)
+	Object.keys(guessRound.players).forEach(ply => {
+		let curAmount = guessRound.players[ply].betamount
+		let guess = guessRound.players[ply].guess
+		pList += `${curAmount} ${pluralize("cat", curAmount)} - ${guess} - **${bot.users.get(ply).username}**\n`
+	});
+	embed.setDescription(pList)
+	let timeLeft = Math.round(guessRound.roundTime - (new Date().getTime() - guessRound.startTime) / 1000)
 	embed.setFooter(`${timeLeft} seconds left.`)
 	if (timeLeft <= 0) {embed.setFooter('This round is over.')}
 	return embed

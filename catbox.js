@@ -75,29 +75,34 @@ command.linkCommand('leaderboard', (command, msg) => {
 	leaderboard = require("./data/leaderboard.json")
 	currency = require("./data/currency.json")
 
-	let topDollar = Object.keys(currency).sort(function(a, b) { return currency[a] - currency[b] } )
-	topDollar = topDollar.reverse().slice(0, Math.min(topDollar.length, 10))
-	let topStreak = Object.keys(leaderboard).sort(function(a, b) { return leaderboard[a] - leaderboard[b] } )
-	topStreak = topStreak.reverse().slice(0, Math.min(topStreak.length, 5))
+	let richestUsers = Object.keys(currency).sort((a, b) => {
+		if (bot.users.get(a) != undefined) { return currency[a] - currency[b] }
+	})
+	richestUsers = richestUsers.reverse().slice(0, Math.min(richestUsers.length, 10))
+	 let highestStreaks = Object.keys(leaderboard).sort((a, b) => {
+		if (bot.users.get(a) != undefined) { return leaderboard[a] - leaderboard[b] }
+	})
+	highestStreaks = highestStreaks.reverse().slice(0, Math.min(highestStreaks.length, 5))
 
-	let streakStr = ""
-	let richStr = ""
+	let streakStr = richStr = ''
 	let embed = new discord.RichEmbed()
 	.setAuthor('Catbox Leaderboard', 'https://cdn.discordapp.com/attachments/456889532227387405/538354324028260377/youwhat_hd.png')
 	.setColor(cfg.embedcolor)
 	.setTimestamp()
 
-	for (let i = 0; i < topDollar.length; i++) {
-		const bal = currency[topDollar[i]];
-		richStr += `\`${('0' + (i + 1)).slice(-2)}.\` ${bal} ${pluralize("cat", bal)} - **${bot.users.get(topDollar[i]).username}**\n`
+	for (let i = 0; i < richestUsers.length; i++) {
+		const bal = currency[richestUsers[i]];
+		richStr += `\`${('0' + (i + 1)).slice(-2)}.\` ${bal} ${pluralize("cat", bal)} - **${bot.users.get(richestUsers[i]).username}**\n`
 	}
 	embed.addField('10 Richest Users', richStr)
 
 	embed.addBlankField()
 
-	for (let i = 0; i < topStreak.length; i++) {
-		const score = leaderboard[topStreak[i]];
-		streakStr += `\`${('0' + (i + 1)).slice(-2)}.\` ${score} ${pluralize("cat", score)} - **${bot.users.get(topStreak[i]).username}**\n`
+	for (let i = 0; i < highestStreaks.length; i++) {
+		const score = leaderboard[highestStreaks[i]];
+		print(`${i} -> ${highestStreaks[i]}`)
+		print(`${i} -> ${bot.users.get(highestStreaks[i]).username}`)
+		streakStr += `\`${('0' + (i + 1)).slice(-2)}.\` ${score} ${pluralize("cat", score)} - **${bot.users.get(highestStreaks[i]).username}**\n`
 	}
 
 	embed.addField('5 Highests Catstreaks', streakStr)
@@ -347,7 +352,7 @@ bot.on("message", (msg) =>
 	}
 
 	try { cmds[cmd].command.run(msg, args) } 
-	catch (err) { if (err.name === 'TypeError') { msg.channel.send(replaceVar(txt.err_invalid_cmd, cfg.prefix)) }
+	catch (err) { if (err.name === 'TypeError') { msg.channel.send(replaceVar(txt.err_invalid_cmd, cfg.prefix)); print(err) }
 	else { msg.channel.send(err) } }
 });
 

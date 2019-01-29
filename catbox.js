@@ -265,7 +265,7 @@ command.linkCommand('bet', (command, msg, amount) => {
 			roundMsg.edit("", generateRoundEmbed())
 
 			let winner = undefined; let winNum = Math.random(); let total = 0;
-			Object.keys(betRound.players).forEach(ply => {
+			shuffleArray(Object.keys(betRound.players)).forEach(ply => {
 				total += betRound.players[ply] / betRound.total
 				if (total >= winNum && winner == undefined) { winner = ply }
 			});
@@ -504,8 +504,7 @@ async function writeData(guildID, key, value)
 
 function randomDelay(min, max)
 {
-	max *= 1000
-	return (Math.random() + min) * max
+	return (Math.random() * (max - min) + min) * 1000
 }
 
 function pluralize(word, count)
@@ -517,6 +516,13 @@ function pluralize(word, count)
 function replaceVar(str, arg)
 {
 	return str.replace(/%\w+%/g, arg)
+}
+
+function shuffleArray(a) {
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    } return a;
 }
 
 bot.login(cfg.token)

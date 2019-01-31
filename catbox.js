@@ -13,7 +13,7 @@ var guessRound	= { roundTime: 30, roundInterval: 5, inProgress: false, total: 0,
 
 command.init(bot, cmds)
 
-command.linkCommand('help', (command, msg) => {
+command.linkCommand('help', (msg) => {
 	let categories = []
 	Object.keys(cmds).forEach(cmd => {
 		if (!categories.includes(cmds[cmd].category)) { categories.push(cmds[cmd].category) }
@@ -35,7 +35,7 @@ command.linkCommand('help', (command, msg) => {
 	msg.channel.send({embed})
 })
 
-command.linkCommand('about', (command, msg) => {
+command.linkCommand('about', (msg) => {
 	msg.channel.send({
 		embed: 
 		{
@@ -65,13 +65,13 @@ command.linkCommand('about', (command, msg) => {
 	})
 })
 
-command.linkCommand('send', (command, msg, name, message) => {
+command.linkCommand('send', (msg, name, message) => {
 	let channel = getChannel(msg.guild, name)
 	if (channel != undefined) { channel.send(message) }
 	else { msg.channel.send(txt.err_no_channel) }
 })
 
-command.linkCommand('leaderboard', (command, msg) => {
+command.linkCommand('leaderboard', (msg) => {
 	leaderboard = require("./data/leaderboard.json")
 	currency = require("./data/currency.json")
 
@@ -107,43 +107,28 @@ command.linkCommand('leaderboard', (command, msg) => {
 	msg.channel.send({embed})
 })
 
-command.linkCommand('give', (command, msg, name, amount) => {
-	if (name === '*')
-	{
-		msg.guild.members.forEach(user => {
-			changeBalance(user.id, amount)
+command.linkCommand('give', (msg, member, amount) => {
+	if (member instanceof Array) {
+		member.forEach(m => {
+			changeBalance(m.id, amount)
 		});
-		msg.channel.send(`**Everyone** has received ${amount} ${pluralize("cat", amount)}.`)
-	}
-	else
-	{
-		let user = getMember(msg.guild, name).user
 
-		if (user != undefined) {
-			changeBalance(user.id, amount, _ => {
-				msg.channel.send(`**${user.username}** was granted ${amount} ${pluralize("cat", amount)}`)
-			})
-		}
-		else { msg.channel.send(txt.err_no_user) }
+		msg.channel.send(`**Everyone** has received ${amount} ${pluralize("cat", amount)}.`)
+	} else {
+		changeBalance(member.id, amount, _ => {
+			msg.channel.send(`**${member.displayName}** was granted ${amount} ${pluralize("cat", amount)}`)
+		})
 	}
 })
 
-command.linkCommand('balance', (command, msg, name) => {
-	let user = msg.author
-
-	if (name) {
-		user = getMember(msg.guild, name).user
-
-		if (user == null) {
-			msg.channel.send(txt.err_no_user); return
-		}
-	}
+command.linkCommand('balance', (msg, member) => {
+	let user = member ? member.user : msg.author
 
 	let bal = getBalance(user.id)
 	msg.channel.send(`**${user.username}** has ${bal} ${pluralize("cat", bal)}`)
 })
 
-command.linkCommand('maintenance', (command, msg, bool) => {
+command.linkCommand('maintenance', (msg, bool) => {
 	if (bool)
 	{
 		bot.guilds.forEach(guild => {
@@ -163,7 +148,7 @@ command.linkCommand('maintenance', (command, msg, bool) => {
 	maintenance = bool
 })
 
-command.linkCommand('guess', (command, msg, amount, guess) => {
+command.linkCommand('guess', (msg, amount, guess) => {
 	let roundMsg = null; let user = msg.author
 
 	if (getBalance(user.id) < amount) { 
@@ -239,7 +224,7 @@ command.linkCommand('guess', (command, msg, amount, guess) => {
 	}
 })
 
-command.linkCommand('bet', (command, msg, amount) => {
+command.linkCommand('bet', (msg, amount) => {
 	let roundMsg = null; let user = msg.author
 	if (getBalance(user.id) < amount) { msg.channel.send(txt.err_no_cats); return }
 	if (amount <= 0) { msg.channel.send(txt.err_invalid_amt); return }

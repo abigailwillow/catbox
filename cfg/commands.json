@@ -38,7 +38,7 @@
 	"balance":
 	{
 		"tip": "Shows how many cats you have.",
-		"args": ["string?"],
+		"args": ["member?"],
 		"category": "General",
 		"admin": 0,
 		"enabled": true
@@ -47,7 +47,7 @@
 	"give":
 	{
 		"tip": "Spawns cats out of thin air.",
-		"args": ["string", "number"],
+		"args": ["member", "number"],
 		"category": "Debug",
 		"admin": 2,
 		"enabled": true

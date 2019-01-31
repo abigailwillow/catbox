@@ -48,7 +48,7 @@
 	{
 		"tip": "Spawns cats out of thin air.",
 		"args": ["member", "number"],
-		"category": "Debug",
+		"category": "Admin",
 		"admin": 2,
 		"enabled": true
 	},

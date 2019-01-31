@@ -80,7 +80,7 @@
 		"enabled": true
 	},
 
-	"guesscheck":
+	"check":
 	{
 		"tip": "Check how far your guess is off from the actual number. ",
 		"args": ["number"],

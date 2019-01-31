@@ -181,30 +181,35 @@ command.linkCommand('guess', (msg, guess) => {
 	}
 })
 
-command.linkCommand('guesscheck', (msg, number) => {
+command.linkCommand('check', (msg, number) => {
 	let user = msg.author
 	let guessNumber = temp.guessRound.num
-	let balance = getBalance(user.id)
 
 	let cost = getGuessCheckCost()
 
-	if (cost > balance) {
+	if (cost > getBalance(user.id)) {
 		msg.channel.send(txt.err_no_cats)
-
 		return
-	} 
+	}
+	if (number < 0 || number > temp.guessRound.max) { msg.channel.send(`You chose an invalid number.`); return }
 
 	changeBalance(user.id, -cost)
 
 	temp.guessRound.total += cost
-
-	if (guessNumber > number) {
-		msg.channel.send("The number is higher than that...")
-	} else if (guessNumber < number) {
-		msg.channel.send("The number is lower than that...")
-	} else if (guessNumber === number) {
-		msg.channel.send("You might be lucky...")
+	if (guessNumber === number) {
+		user.send(`${number} might be your lucky number today.`)
+	} else if (guessNumber - number > 50) {
+		user.send(`The number is much higher than ${number}.`)
+	} else if (guessNumber - number < -50) {
+		user.send(`The number is much lower than ${number}.`)
+	} else if (guessNumber - number <= 50 && guessNumber - number > 0) {
+		user.send(`The number is higher than ${number}.`)
+	} else if (guessNumber - number >= -50 && guessNumber - number < 0) {
+		user.send(`The number is lower than ${number}.`)
+	} else {
+		user.send(`You chose an invalid number.`)
 	}
+	msg.channel.send(`**${user.username}** checked number ${number} and added ${cost} ${pluralize("cat", cost)} to the pool.`)
 })
 
 command.linkCommand('bet', (msg, amount) => {
@@ -289,16 +294,13 @@ bot.on("message", (msg) =>
 	msg.content = msg.cleanContent
 
 	if (maintenance && msg.content !== `${cfg.prefix}maintenance false`) { return }
-
-	if (msg.guild.id == underbox && msg.content.includes(youwhat) && msg.content != youwhat && msg.author.id != bot.user.id) // Reacts to any message with youwhat
-	{
-		msg.react(youwhat.match(/(?<=:)\d+(?=>)/)[0]) // This is super inefficient but whatever
-	}
-
-	if (msg.guild.id == underbox && msg.content == youwhat && msg.author.id != bot.user.id) 
-	{ 
-		if (getBalance(msg.author.id) > 0) { sendCat(msg) }
-		else { msg.channel.send(txt.warn_no_cats) }
+	
+	if (msg.guild !== null) {
+		if (msg.guild.id == underbox && msg.content == youwhat && msg.author.id != bot.user.id)
+		{ 
+			if (getBalance(msg.author.id) > 0) { sendCat(msg) }
+			else { msg.channel.send(txt.warn_no_cats) }
+		}
 	}
 
 	// Return if message is either from a bot or doesn't start with command prefix. Keep non-commands above this line.
@@ -381,7 +383,7 @@ function getGuessCheckCost () {
 
 function generateGuessRoundEmbed()
 {
-	let numList = `Guess check cost: ${getGuessCheckCost()}\n\nMaximum guess for this round: ${temp.guessRound.max}\n\nGuessed numbers: `
+	let numList = `Maximum guess for this round: ${temp.guessRound.max}\n\nGuessed numbers: `
 	let embed = new discord.RichEmbed()
 	.setAuthor(`Guessing Round - Total: ${temp.guessRound.total} ${pluralize("cat", temp.guessRound.total)}`, 'https://cdn.discordapp.com/attachments/456889532227387405/538354324028260377/youwhat_hd.png')
 	.setColor(cfg.embedcolor)
@@ -393,6 +395,7 @@ function generateGuessRoundEmbed()
 		numList += nums[nums.length - 1]
 	} else { numList += "none" }
 	embed.setDescription(numList)
+	.setFooter(`Guess check cost: ${getGuessCheckCost()}`)
 	return embed
 }
 

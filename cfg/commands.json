@@ -74,7 +74,7 @@
 	"guess":
 	{
 		"tip": "Start a new guessing round or join an existing one. The user with the closest guess wins.",
-		"args": ["number", "number"],
+		"args": ["number?"],
 		"category": "General",
 		"admin": 0,
 		"enabled": true

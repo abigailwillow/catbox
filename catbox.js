@@ -7,9 +7,9 @@ const txt		= require("./res/strings.json")
 const command 	= require("./lib/commandhandler.js")
 var leaderboard = require("./data/leaderboard.json")
 var currency	= require("./data/currency.json")
+var temp		= require("./data/temp.json")
 var maintenance = false
 var betRound	= { roundTime: 30, roundInterval: 5, inProgress: false, total: 0, players: {} }
-var guessRound	= { roundTime: 30, roundInterval: 5, inProgress: false, total: 0, players: {}, number: 0 }
 
 command.init(bot, cmds)
 
@@ -79,7 +79,7 @@ command.linkCommand('leaderboard', (msg) => {
 		if (bot.users.get(a) != undefined) { return currency[a] - currency[b] }
 	})
 	richestUsers = richestUsers.reverse().slice(0, Math.min(richestUsers.length, 10))
-	 let highestStreaks = Object.keys(leaderboard).sort((a, b) => {
+	let highestStreaks = Object.keys(leaderboard).sort((a, b) => {
 		if (bot.users.get(a) != undefined) { return leaderboard[a] - leaderboard[b] }
 	})
 	highestStreaks = highestStreaks.reverse().slice(0, Math.min(highestStreaks.length, 5))
@@ -148,79 +148,34 @@ command.linkCommand('maintenance', (msg, bool) => {
 	maintenance = bool
 })
 
-command.linkCommand('guess', (msg, amount, guess) => {
-	let roundMsg = null; let user = msg.author
+command.linkCommand('guess', (msg, guess) => {
+	let user = msg.author
 
-	if (getBalance(user.id) < amount) { 
-		msg.channel.send(txt.err_no_cats); return 
+	if (temp.guessRound.num === false) {
+		temp.guessRound.max = randomInt(1, 5) * 100
+		temp.guessRound.num = randomInt(0, temp.guessRound.max)
+		temp.guessRound.total = Math.round(temp.guessRound.max / 20)
+		file.writeFile("./data/temp.json", JSON.stringify(temp), (err) => {})
 	}
-	
-	Object.keys(guessRound.players).forEach(ply => {
-		let g = guessRound.players[ply].guess
 
-		if (g == guess) {
-			msg.channel.send(`**${user.username}** please choose a unique number.`)
-			return
+	if (!guess) { msg.channel.send(generateGuessRoundEmbed()) }
+	else {
+		if (getBalance(user.id) <= 0) { msg.channel.send(txt.err_no_cats); return }
+		if (temp.guessRound.guessed.includes(guess)) { msg.channel.send("This number is not available."); return }
+		changeBalance(user.id, -1)
+		temp.guessRound.guessed.push(guess)
+		temp.guessRound.total++
+
+		if (guess === temp.guessRound.num) {
+			msg.channel.send(`**${user.username}** won ${temp.guessRound.total} ${pluralize("cat", temp.guessRound.total)}! Winning number was ${temp.guessRound.num}.`)
+			changeBalance(user.id, temp.guessRound.total)
+			temp.guessRound.num = false;
+			temp.guessRound.guessed = []
+		} else {
+			msg.channel.send(`**${user.username}** guessed number ${guess}.`)
+			msg.channel.send(generateGuessRoundEmbed())
+			file.writeFile("./data/temp.json", JSON.stringify(temp), (err) => {})
 		}
-	});
-
-	if (amount <= 0) { 
-		msg.channel.send(txt.err_invalid_amt); 
-		return
-	 }
-
-	if (guess < 0 || guess > 100) { 
-		msg.channel.send("Guess must be a number from 0 to 100."); 
-		return 
-	}
-
-	changeBalance(user.id, -amount)
-
-	guessRound.number = Math.round(Math.random() * 100)
-	guessRound.total += amount
-
-	if (guessRound.players.hasOwnProperty(user.id)) {
-		msg.channel.send(`**${user.username}** changed their guess :angry:`)
-		guessRound.players[user.id] = {betamount: amount, guess: guess}
-		return
-	} else {
-		guessRound.players[user.id] = {betamount: amount, guess: guess}
-	}
-
-	if (!guessRound.inProgress) {
-		guessRound.inProgress = true
-		guessRound.startTime = new Date().getTime()
-		msg.channel.send(`**${user.username}** just started a guessing round with ${amount} ${pluralize("cat", amount)}! You have ${guessRound.roundTime} seconds to join in!`)
-		msg.channel.send(generateGuessRoundEmbed()).then(msg => roundMsg = msg)
-		var IID = setInterval(() => { roundMsg.edit("", generateGuessRoundEmbed()) }, guessRound.roundInterval * 1000);
-		setTimeout(() => {
-			clearInterval(IID)
-			roundMsg.edit("", generateGuessRoundEmbed())
-
-			let winner = undefined; 
-			let bestnum = -1;
-
-			Object.keys(guessRound.players).forEach(ply => {
-				let player = guessRound.players[ply]
-
-				let difference = 100 - player.guess + guessRound.number
-
-				if (player.guess <= guessRound.number) {
-					difference = guessRound.number -  player.guess
-				}
-
-				if (difference > bestnum) {
-					bestnum = difference
-					winner = ply
-				}
-			});
-
-			msg.channel.send(`**${bot.users.get(winner).username}** won ${guessRound.total} ${pluralize("cat", guessRound.total)} with a difference of ${bestnum}. The number was ${guessRound.number}.`)
-			changeBalance(winner, guessRound.total)
-			guessRound.inProgress = false; guessRound.total = 0; guessRound.players = {}
-		}, guessRound.roundTime * 1000);
-	} else {
-		msg.channel.send(`**${user.username}** joined the current guessing round with ${amount} ${pluralize("cat", amount)} and the number ${guess}.`)
 	}
 })
 
@@ -282,10 +237,10 @@ setInterval(() => {
 	}
 }, 60000);
 
-const underbox	= '456889532227387403'
-const youwhat	= '<:youwhat:534811127461445643>'
-const odds		= 0.5
-var cooldowns 	= {}
+const underbox		= '456889532227387403'
+const youwhat		= '<:youwhat:534811127461445643>'
+const odds			= 0.5
+var cooldowns 		= {}
 
 // Events
 bot.on("ready", () =>
@@ -369,12 +324,7 @@ function sendCat(msg)
 	{
 		saveHighscore(msg.author.id, catStreak)
 		changeBalance(msg.author.id, catStreak)
-		msg.channel.startTyping()
-		setTimeout(function()
-		{
-			msg.channel.send(`**${msg.author.username}** earned ${catStreak} ${pluralize("cat", catStreak)} (${(Math.pow(odds, catStreak) * 100).toFixed(2)}% chance)\n${cats}`)
-		}, randomDelay(0, 1))
-		msg.channel.stopTyping()
+		msg.channel.send(`**${msg.author.username}** earned ${catStreak} ${pluralize("cat", catStreak)} (${(Math.pow(odds, catStreak) * 100).toFixed(2)}% chance)\n${cats}`)
 	}
 }
 
@@ -397,19 +347,18 @@ function generateRoundEmbed()
 
 function generateGuessRoundEmbed()
 {
-	let pList = ""
+	let numList = `Maximum guess for this round: ${temp.guessRound.max}\nGuessed numbers: `
 	let embed = new discord.RichEmbed()
-	.setAuthor(`Betting Round - Total: ${guessRound.total} ${pluralize("cat", guessRound.total)}`, 'https://cdn.discordapp.com/attachments/456889532227387405/538354324028260377/youwhat_hd.png')
+	.setAuthor(`Guessing Round - Total: ${temp.guessRound.total} ${pluralize("cat", temp.guessRound.total)}`, 'https://cdn.discordapp.com/attachments/456889532227387405/538354324028260377/youwhat_hd.png')
 	.setColor(cfg.embedcolor)
-	Object.keys(guessRound.players).forEach(ply => {
-		let curAmount = guessRound.players[ply].betamount
-		let guess = guessRound.players[ply].guess
-		pList += `${curAmount} ${pluralize("cat", curAmount)} - ${guess} - **${bot.users.get(ply).username}**\n`
-	});
-	embed.setDescription(pList)
-	let timeLeft = Math.round(guessRound.roundTime - (new Date().getTime() - guessRound.startTime) / 1000)
-	embed.setFooter(`${timeLeft} seconds left.`)
-	if (timeLeft <= 0) {embed.setFooter('This round is over.')}
+	if (temp.guessRound.guessed[0] !== undefined && temp.guessRound.guessed[0] !== null) {
+		let nums = temp.guessRound.guessed.sort((a, b) => temp.guessRound.guessed[a] - temp.guessRound.guessed[b])
+		for (let i = 0; i < nums.length - 1; i++) {
+			numList += `${nums[i]}, `
+		}
+		numList += nums[nums.length - 1]
+	} else { numList += "none" }
+	embed.setDescription(numList)
 	return embed
 }
 
@@ -428,6 +377,7 @@ function getChannel(guild, identifier)
 	channel = guild.channels.find(x => x.id === identifier || x.name === identifier)
 	return channel
 }
+
 function saveHighscore(userID, score)
 {
 	var filename = "./data/leaderboard.json"
@@ -474,9 +424,9 @@ function getBalance(userID)
 	return bal
 }
 
-function randomDelay(min, max)
+function randomInt(min, max)
 {
-	return (Math.random() * (max - min) + min) * 1000
+	return Math.round(Math.random() * (max - min) + min)
 }
 
 function pluralize(word, count)

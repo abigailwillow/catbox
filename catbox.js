@@ -161,7 +161,7 @@ command.linkCommand('guess', (msg, guess) => {
 	if (!guess) { msg.channel.send(generateGuessRoundEmbed()) }
 	else {
 		if (getBalance(user.id) <= 0) { msg.channel.send(txt.err_no_cats); return }
-		if (temp.guessRound.guessed.includes(guess)) { msg.channel.send("This number is not available."); return }
+		if (temp.guessRound.guessed.includes(guess) || guess < 0 || guess > temp.guessRound.max) { msg.channel.send("This number is not available."); return }
 		changeBalance(user.id, -1)
 		temp.guessRound.guessed.push(guess)
 		temp.guessRound.total++

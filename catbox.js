@@ -27,7 +27,7 @@ command.linkCommand('help', (msg) => {
 		Object.keys(cmds).forEach(cmd => {
 			if (cmds[cmd].category === cat)
 			{
-				txt += `\`${cfg.prefix}${cmd} ${String(cmds[cmd].args).replace(',',' ')}\`­­­­­­­­­­­­­­­:\n${cmds[cmd].tip}\n\n`
+				txt += `\`${cfg.prefix}${cmd} ${String(cmds[cmd].args).replace(',',' ')}\`­­­­­­­­­­­­­­­\n${cmds[cmd].tip}\n`
 			}
 		});
 		embed.addField(cat + " commands", txt)
@@ -107,8 +107,8 @@ command.linkCommand('leaderboard', (msg) => {
 	msg.channel.send({embed})
 })
 
-command.linkCommand('give', (msg, member, amount) => {
-	if (member instanceof Array) {
+command.linkCommand('spawn', (msg, member, amount) => {
+	if (member instanceof Object) {
 		member.forEach(m => {
 			changeBalance(m.id, amount)
 		});
@@ -116,8 +116,28 @@ command.linkCommand('give', (msg, member, amount) => {
 		msg.channel.send(`**Everyone** has received ${amount} ${pluralize("cat", amount)}.`)
 	} else {
 		changeBalance(member.id, amount, _ => {
-			msg.channel.send(`**${member.displayName}** was granted ${amount} ${pluralize("cat", amount)}`)
+			msg.channel.send(`**${member.displayName}** was granted ${amount} ${pluralize("cat", amount)}.`)
 		})
+	}
+})
+
+command.linkCommand('give', (msg, member, amount) => {
+	let user = msg.member
+	
+	if (getBalance(user.id) < amount) { msg.channel.send(txt.err_no_cats); return }
+	if (amount <= 0) { msg.channel.send(txt.err_invalid_amt); return }
+
+	if (member instanceof Object) {
+		msg.channel.send(txt.err_no_everyone)
+	} else {
+		if (getBalance(user.id) >= amount) {
+			changeBalance(user.id, -amount)
+			changeBalance(member.id, amount, _ => {
+				msg.channel.send(`**${user.displayName}** has given ${amount} ${pluralize("cat", amount)} to **${member.displayName}**.`)
+			})
+		} else {
+			msg.channel.send(txt.err_no_cats)
+		}
 	}
 })
 
@@ -310,8 +330,8 @@ bot.on("message", (msg) =>
 	if (cooldowns[msg.author.id] > t) { msg.channel.send(txt.warn_cooldown); return }
 	else { cooldowns[msg.author.id] = t + cfg.cooldown }
 
-	const args = msg.content.slice(cfg.prefix.length).trim().split(/ +(?=(?:(?:[^"]*"){2})*[^"]*$)/g)
-	const cmd = args.shift().toLowerCase()
+	let args = msg.content.slice(cfg.prefix.length).trim().split(/ +(?=(?:(?:[^"]*"){2})*[^"]*$)/g)
+	let cmd = args.shift().toLowerCase()
 	
 	for (let i = 0; i < args.length; i++) 
 	{
@@ -319,17 +339,25 @@ bot.on("message", (msg) =>
 		if (args[i].charAt(args[i].length - 1) == `"`) { args[i] = args[i].substring(0, args[i].length - 1) }
 	}
 
-	if (cmds[cmd] != undefined) {
-		try { 
-			cmds[cmd].command.run(msg, args) 
-		} catch (err) { 
-			console.log(err)
+	if (cmds[cmd] === undefined) {
+		let alias = Object.keys(cmds).find(x => cmds[x].alias === cmd)
+		if (!alias) {
+			msg.channel.send(replaceVar(txt.err_invalid_cmd, cfg.prefix))
+			return
+		} else {
+			cmd = alias
+		}
+	}
 
-			if (err.message == undefined) {
-				msg.channel.send("" + err)
-			} else {
-				msg.channel.send("Internal error: " + err.message)
-			}
+	try { 
+		cmds[cmd].command.run(msg, args) 
+	} catch (err) { 
+		console.log(err)
+
+		if (err.message == undefined) {
+			msg.channel.send("" + err)
+		} else {
+			msg.channel.send("Internal error: " + err.message)
 		}
 	}
 });

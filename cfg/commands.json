@@ -28,6 +28,7 @@
 
 	"leaderboard":
 	{
+		"alias": "lb",
 		"tip": "Show the top catters.",
 		"args": [],
 		"category": "General",
@@ -37,6 +38,7 @@
 
 	"balance":
 	{
+		"alias": "bal",
 		"tip": "Shows how many cats you have.",
 		"args": ["member?"],
 		"category": "General",
@@ -44,12 +46,21 @@
 		"enabled": true
 	},
 	
-	"give":
+	"spawn":
 	{
 		"tip": "Spawns cats out of thin air.",
 		"args": ["member", "number"],
 		"category": "Admin",
 		"admin": 2,
+		"enabled": true
+	},
+
+	"give":
+	{
+		"tip": "Transfer cats to other users.",
+		"args": ["member", "number"],
+		"category": "General",
+		"admin": 0,
 		"enabled": true
 	},
 

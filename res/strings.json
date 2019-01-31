@@ -7,6 +7,7 @@
 	"err_no_user": "Could not find that user.",
 	"err_no_cats": "You don't have enough cats to do that.",
 	"err_invalid_amt": "Invalid amount of cats.",
+	"err_no_everyone": "You can't target everyone.",
 	"warn_no_cats": "You have no more cats. You'll get some new ones soon.",
 	"warn_cooldown": "Please wait a bit between using commands.",
 	"ad_title": "Encrypted Laser",

@@ -27,7 +27,7 @@ command.linkCommand('help', (msg) => {
 		Object.keys(cmds).forEach(cmd => {
 			if (cmds[cmd].category === cat)
 			{
-				txt += `\`${cfg.prefix}${cmd}\`­­­­­­­­­­­­­­­ -> ${cmds[cmd].tip}\n`
+				txt += `\`${cfg.prefix}${cmd} ${String(cmds[cmd].args).replace(',',' ')}\`­­­­­­­­­­­­­­­:\n${cmds[cmd].tip}\n\n`
 			}
 		});
 		embed.addField(cat + " commands", txt)

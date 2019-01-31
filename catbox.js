@@ -317,15 +317,17 @@ bot.on("message", (msg) =>
 		if (args[i].charAt(args[i].length - 1) == `"`) { args[i] = args[i].substring(0, args[i].length - 1) }
 	}
 
-	try { 
-		cmds[cmd].command.run(msg, args) 
-	} catch (err) { 
-		console.log(err)
+	if (cmds[cmd] != undefined) {
+		try { 
+			cmds[cmd].command.run(msg, args) 
+		} catch (err) { 
+			console.log(err)
 
-		if (err.message == undefined) {
-			msg.channel.send("" + err)
-		} else {
-			msg.channel.send("Internal error: " + err.message)
+			if (err.message == undefined) {
+				msg.channel.send("" + err)
+			} else {
+				msg.channel.send("Internal error: " + err.message)
+			}
 		}
 	}
 });

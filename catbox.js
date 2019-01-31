@@ -66,8 +66,8 @@ command.linkCommand('about', (command, msg) => {
 })
 
 command.linkCommand('send', (command, msg, name, message) => {
-	let channel = msg.guild.channels.find(x => x.name === name)
-	if (channel != null) { channel.send(message) }
+	let channel = getChannel(msg.guild, name)
+	if (channel != undefined) { channel.send(message) }
 	else { msg.channel.send(txt.err_no_channel) }
 })
 
@@ -117,9 +117,9 @@ command.linkCommand('give', (command, msg, name, amount) => {
 	}
 	else
 	{
-		let user = bot.users.find(a => a.id === name || a.username.toLowerCase() === name.toLowerCase())
+		let user = getMember(msg.guild, name).user
 
-		if (user != null) {
+		if (user != undefined) {
 			changeBalance(user.id, amount, _ => {
 				msg.channel.send(`**${user.username}** was granted ${amount} ${pluralize("cat", amount)}`)
 			})
@@ -132,7 +132,7 @@ command.linkCommand('balance', (command, msg, name) => {
 	let user = msg.author
 
 	if (name) {
-		user = bot.users.find(a => a.id === name || a.username.toLowerCase() === name.toLowerCase())
+		user = getMember(msg.guild, name).user
 
 		if (user == null) {
 			msg.channel.send(txt.err_no_user); return
@@ -420,6 +420,21 @@ function generateGuessRoundEmbed()
 	return embed
 }
 
+function getMember(guild, identifier)
+{
+	identifier = identifier.toLowerCase()
+	let member = undefined
+	member = guild.members.find(x => x.id === identifier || x.user.username.toLowerCase() === identifier || ((x.nickname !== null) ? x.nickname.toLowerCase() === identifier : false))
+	return member
+}
+
+function getChannel(guild, identifier)
+{
+	identifier = identifier.toLowerCase()
+	let channel = undefined
+	channel = guild.channels.find(x => x.id === identifier || x.name === identifier)
+	return channel
+}
 function saveHighscore(userID, score)
 {
 	var filename = "./data/leaderboard.json"
@@ -464,42 +479,6 @@ function getBalance(userID)
 		bal = currency[userID]
 	}
 	return bal
-}
-
-// Both read and write are fucking borked, I should fix that maybe.
-async function readData(guildID, key)
-{
-	var filename = './data/' + guildID + '.json'
-	if (file.existsSync(filename))
-	{
-		var data = require(filename)
-	}
-	return data[key]
-}
-
-async function writeData(guildID, key, value)
-{
-	var filename = './data/' + guildID + '.json'
-	if (file.existsSync(filename))
-	{
-		var data = require(filename)
-	}
-	else
-	{
-		var data = {
-			"name": bot.guilds.get(guildID).name,
-			"owner": bot.guilds.get(guildID).owner.id
-		}
-	}
-	if (value == null)
-	{
-		delete data[key]
-	}
-	else
-	{
-		data[key] = value
-	}
-	file.writeFile(filename, JSON.stringify(data))
 }
 
 function randomDelay(min, max)

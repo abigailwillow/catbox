@@ -78,5 +78,14 @@
 		"category": "General",
 		"admin": 0,
 		"enabled": true
+	},
+
+	"guesscheck":
+	{
+		"tip": "Check how far your guess is off from the actual number. ",
+		"args": ["number"],
+		"category": "General",
+		"admin": 0,
+		"enabled": true
 	}
 }

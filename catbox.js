@@ -158,10 +158,11 @@ command.linkCommand('guess', (msg, guess) => {
 		file.writeFile("./data/temp.json", JSON.stringify(temp), (err) => {})
 	}
 
-	if (!guess) { msg.channel.send(generateGuessRoundEmbed()) }
-	else {
+	if (!guess) { 
+		msg.channel.send(generateGuessRoundEmbed()) 
+	} else {
 		if (getBalance(user.id) <= 0) { msg.channel.send(txt.err_no_cats); return }
-		if (temp.guessRound.guessed.includes(guess) || guess < 0 || guess > temp.guessRound.max) { msg.channel.send("This number is not available."); return }
+		if (temp.guessRound.guessed.includes(guess) || guess < 0 || guess > temp.guessRound.max) { msg.channel.send("Choose a different number."); return }
 		changeBalance(user.id, -1)
 		temp.guessRound.guessed.push(guess)
 		temp.guessRound.total++
@@ -174,8 +175,35 @@ command.linkCommand('guess', (msg, guess) => {
 		} else {
 			msg.channel.send(`**${user.username}** guessed number ${guess}.`)
 			msg.channel.send(generateGuessRoundEmbed())
-			file.writeFile("./data/temp.json", JSON.stringify(temp), (err) => {})
 		}
+
+		file.writeFile("./data/temp.json", JSON.stringify(temp), (err) => {})
+	}
+})
+
+command.linkCommand('guesscheck', (msg, number) => {
+	let user = msg.author
+	let guessNumber = temp.guessRound.num
+	let balance = getBalance(user.id)
+
+	let cost = getGuessCheckCost()
+
+	if (cost > balance) {
+		msg.channel.send(txt.err_no_cats)
+
+		return
+	} 
+
+	changeBalance(user.id, -cost)
+
+	temp.guessRound.total += cost
+
+	if (guessNumber > number) {
+		msg.channel.send("The number is higher than that...")
+	} else if (guessNumber < number) {
+		msg.channel.send("The number is lower than that...")
+	} else if (guessNumber === number) {
+		msg.channel.send("You might be lucky...")
 	}
 })
 
@@ -345,14 +373,18 @@ function generateRoundEmbed()
 	return embed
 }
 
+function getGuessCheckCost () {
+	return 25 + Math.floor(temp.guessRound.guessed.length/5)
+}
+
 function generateGuessRoundEmbed()
 {
-	let numList = `Maximum guess for this round: ${temp.guessRound.max}\nGuessed numbers: `
+	let numList = `Guess check cost: ${getGuessCheckCost()}\n\nMaximum guess for this round: ${temp.guessRound.max}\n\nGuessed numbers: `
 	let embed = new discord.RichEmbed()
 	.setAuthor(`Guessing Round - Total: ${temp.guessRound.total} ${pluralize("cat", temp.guessRound.total)}`, 'https://cdn.discordapp.com/attachments/456889532227387405/538354324028260377/youwhat_hd.png')
 	.setColor(cfg.embedcolor)
 	if (temp.guessRound.guessed[0] !== undefined && temp.guessRound.guessed[0] !== null) {
-		let nums = temp.guessRound.guessed.sort((a, b) => temp.guessRound.guessed[a] - temp.guessRound.guessed[b])
+		let nums = temp.guessRound.guessed.sort((a, b) => a - b)
 		for (let i = 0; i < nums.length - 1; i++) {
 			numList += `${nums[i]}, `
 		}

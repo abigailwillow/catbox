@@ -175,7 +175,7 @@ command.linkCommand('guess', (msg, guess) => {
 		temp.guessRound.max = randomInt(1, 5) * 100
 		temp.guessRound.num = randomInt(0, temp.guessRound.max)
 		temp.guessRound.total = Math.round(temp.guessRound.max / 20)
-		file.writeFile("./data/temp.json", JSON.stringify(temp), (err) => {})
+		file.writeFile("./data/temp.json", JSON.stringify(temp), () => {})
 	}
 
 	if (!guess) { 
@@ -197,7 +197,7 @@ command.linkCommand('guess', (msg, guess) => {
 			msg.channel.send(generateGuessRoundEmbed())
 		}
 
-		file.writeFile("./data/temp.json", JSON.stringify(temp), (err) => {})
+		file.writeFile("./data/temp.json", JSON.stringify(temp), () => {})
 	}
 })
 
@@ -255,7 +255,7 @@ command.linkCommand('bet', (msg, amount) => {
 		var IID = setInterval(() => { roundMsg.edit("", generateRoundEmbed()) }, betRound.roundInterval * 1000);
 		setTimeout(() => {
 			clearInterval(IID)
-			roundMsg.edit("", generateRoundEmbed())
+			roundMsg.edit('', generateRoundEmbed())
 
 			let winner = undefined; let winNum = Math.random(); let total = 0;
 			shuffleArray(Object.keys(betRound.players)).forEach(ply => {
@@ -273,18 +273,62 @@ command.linkCommand('bet', (msg, amount) => {
 	}
 })
 
+command.linkCommand('config', (msg, key, value) => {
+	let keyList = ['channel']
+	if (key === 'list') {
+		let list = 'List of available config attributes: '
+		for (let i = 0; i < keyList.length - 1; i++) {
+			list += `\`${keyList[i]}\``
+		}; list += `\`${keyList[keyList.length - 1]}\``
+		msg.channel.send(list)
+	} else {
+		switch (key) {
+			case 'channel':
+			temp = require("./data/temp.json")
+				if (value === null) { 
+					let list = 'List of current cat channels: '
+					if (temp.channels.length < 1) {
+						list += '\`none\`'
+					} else {
+						for (let i = 0; i < temp.channels.length - 1; i++) {
+							list += `\`${temp.channels[i]}\``
+						}; list += `\`${temp.channels[temp.channels.length - 1]}\``
+					}
+					msg.channel.send(list)
+				} else {
+					let channel = getChannel(msg.guild, value)
+					if (channel === null) { 
+						msg.channel.send(txt.err_no_channel) 
+					} else {
+						if (temp.channels.includes(channel.id)) {
+							temp.channels.splice(temp.channels.indexOf(channel.id), 1)
+							msg.channel.send(`\`${channel.name}\` was removed from the list of cat channels.`)
+						} else {
+							temp.channels.push(channel.id)
+							msg.channel.send(`\`${channel.name}\` was added to the list of cat channels.`)
+						}
+					}
+				}
+				file.writeFile("./data/temp.json", JSON.stringify(temp), () => {})
+				break;
+			default:
+				msg.channel.send(`Sorry boss, I could not find any attribute called '${key}'. Try \`${cfg.prefix}config list\``)
+				break;
+		}
+	}
+})
+
 setInterval(() => {
 	let d = new Date()
 	if (d.getMinutes() === 0)
 	{
 		file.copyFileSync("./data/currency.json", `./data/backups/currency-${d.toISOString().substr(0, 13)}.json`)
 		file.copyFileSync("./data/leaderboard.json", `./data/backups/leaderboard-${d.toISOString().substr(0, 13)}.json`)
-		bot.users.forEach(user => {
-			changeBalance(user.id, 2)
+		temp.users.forEach(u => {
+			changeBalance(u.id, 5)
 		});
-		bot.guilds.forEach(guild => {
-			guild.channels.find(x => x.name === "cat").send(`**Everyone** has received 2 cats.`)
-		});
+		temp.users = []
+		file.writeFile("./data/temp.json", JSON.stringify(temp), () => {})
 		cooldowns = {}
 		print("Backups were made and hourly cats given out.")
 	}
@@ -309,9 +353,11 @@ bot.on("ready", () =>
 	})
 });
 
-bot.on("message", (msg) =>
+bot.on("message", msg =>
 {
 	msg.content = msg.cleanContent
+
+	if (temp.channels !== undefined) { if (!temp.channels.includes(msg.channel.id)) { return } }
 
 	if (maintenance && msg.content !== `${cfg.prefix}maintenance false`) { return }
 	
@@ -322,6 +368,8 @@ bot.on("message", (msg) =>
 			else { msg.channel.send(txt.warn_no_cats) }
 		}
 	}
+
+	if (!temp.users.includes(msg.author.id)) { temp.users.push(msg.author.id) }
 
 	// Return if message is either from a bot or doesn't start with command prefix. Keep non-commands above this line.
 	if (msg.author.bot || msg.content.substring(0, cfg.prefix.length) !== cfg.prefix) { return }
@@ -355,7 +403,7 @@ bot.on("message", (msg) =>
 		console.log(err)
 
 		if (err.message == undefined) {
-			msg.channel.send("" + err)
+			msg.channel.send(err)
 		} else {
 			msg.channel.send("Internal error: " + err.message)
 		}
@@ -450,12 +498,12 @@ function saveHighscore(userID, score)
 	if (!leaderboard.hasOwnProperty(userID))
 	{
 		leaderboard[userID] = score
-		file.writeFile(filename, JSON.stringify(leaderboard), (err) => {})
+		file.writeFile(filename, JSON.stringify(leaderboard), () => {})
 	}
 	else if (leaderboard[userID] < score) 
 	{ 
 		leaderboard[userID] = score
-		file.writeFile(filename, JSON.stringify(leaderboard), (err) => {})
+		file.writeFile(filename, JSON.stringify(leaderboard), () => {})
 	}
 }
 
@@ -470,7 +518,7 @@ function changeBalance(userID, amount, callback)
 		currency[userID] = amount
 	}
 
-	file.writeFile(filename, JSON.stringify(currency), (err) => {})
+	file.writeFile(filename, JSON.stringify(currency), () => {})
 
 	if (callback != null) {
 		callback()

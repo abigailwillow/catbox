@@ -93,10 +93,20 @@
 
 	"check":
 	{
-		"tip": "Check how far your guess is off from the actual number. ",
+		"tip": "Check how far your guess is off from the actual number.",
 		"args": ["number"],
 		"category": "General",
 		"admin": 0,
+		"enabled": true
+	},
+
+	"config":
+	{
+		"alias": "cfg",
+		"tip": "Customise attributes of the bot.",
+		"args": ["string", "string?"],
+		"category": "Admin",
+		"admin": 1,
 		"enabled": true
 	}
 }

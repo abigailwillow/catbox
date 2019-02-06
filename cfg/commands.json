@@ -108,5 +108,14 @@
 		"category": "Admin",
 		"admin": 1,
 		"enabled": true
+	},
+
+	"eval":
+	{
+		"tip": "Run a piece of code via chat.",
+		"args": ["string"],
+		"category": "Debug",
+		"admin": 2,
+		"enabled": true
 	}
 }

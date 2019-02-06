@@ -20,7 +20,7 @@
 	"send":
 	{
 		"tip": "Force the bot to send a message to any channel.",
-		"args": ["string", "string"],
+		"args": ["channel", "string"],
 		"category": "Admin",
 		"admin": 1,
 		"enabled": true
@@ -93,7 +93,7 @@
 
 	"check":
 	{
-		"tip": "Check how far your guess is off from the actual number.",
+		"tip": "Check how far off your guess is from the actual number.",
 		"args": ["number"],
 		"category": "General",
 		"admin": 0,

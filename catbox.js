@@ -11,7 +11,6 @@ var currency	= require('./data/currency.json')
 var temp		= require('./data/temp.json')
 var maintenance = false
 var betRound	= { roundTime: 30, roundInterval: 5, inProgress: false, total: 0, players: {} }
-const date 		= new Date()
 
 command.init(bot, cmds)
 
@@ -37,7 +36,7 @@ command.linkCommand('help', msg => {
 	msg.channel.send({embed})
 })
 
-command.linkCommand('about', (msg) => {
+command.linkCommand('about', msg => {
 	msg.channel.send({
 		embed: 
 		{
@@ -67,10 +66,12 @@ command.linkCommand('about', (msg) => {
 	})
 })
 
-command.linkCommand('send', (msg, name, message) => {
-	let channel = getChannel(msg.guild, name)
-	if (channel != undefined) { channel.send(message) }
-	else { msg.channel.send(txt.err_no_channel) }
+command.linkCommand('send', (msg, channel, message) => {
+	if (channel !== undefined) { 
+		channel.send(message) 
+	} else {
+		msg.channel.send(txt.err_no_channel)
+	}
 })
 
 command.linkCommand('leaderboard', msg => {
@@ -110,7 +111,7 @@ command.linkCommand('leaderboard', msg => {
 })
 
 command.linkCommand('spawn', (msg, member, amount) => {
-	if (member instanceof Object) {
+	if (member instanceof Map) {
 		member.forEach(m => {
 			changeBalance(m.id, amount)
 		});
@@ -129,7 +130,7 @@ command.linkCommand('give', (msg, member, amount) => {
 	if (getBalance(user.id) < amount) { msg.channel.send(txt.err_no_cats); return }
 	if (amount <= 0) { msg.channel.send(txt.err_invalid_amt); return }
 
-	if (member instanceof Object) {
+	if (member instanceof Map) {
 		msg.channel.send(txt.err_no_everyone)
 	} else {
 		if (getBalance(user.id) >= amount) {
@@ -385,9 +386,8 @@ bot.on('message', msg =>
 	// Return if message is either from a bot or doesn't start with command prefix. Keep non-commands above this line.
 	if (msg.author.bot || msg.content.substring(0, cfg.prefix.length) !== cfg.prefix) { return }
 
-	let t = new Date().getTime()
-	if (cooldowns[msg.author.id] > t) { msg.channel.send(txt.warn_cooldown); return }
-	else { cooldowns[msg.author.id] = t + cfg.cooldown }
+	if (cooldowns[msg.author.id] > Date.now()) { msg.channel.send(txt.warn_cooldown); return }
+	else { cooldowns[msg.author.id] = Date.now() + cfg.cooldown }
 
 	let cmd = parser(msg.content)
 

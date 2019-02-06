@@ -435,7 +435,7 @@ function sendCat(msg)
 	let catStreak = 0
 	let rng = Math.random()
 	let cats = ''
-    while (rng >= odds)
+    while (rng <= odds)
 	{
 		cats += youwhat
 		catStreak++

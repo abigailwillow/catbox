@@ -322,7 +322,6 @@ command.linkCommand('config', (msg, key, value) => {
 })
 
 command.linkCommand('eval', (msg, code) => {
-	print(code)
 	try {
 		eval(code)
 	} catch (err) {
@@ -336,19 +335,21 @@ setInterval(() => {
 	{
 		file.copyFileSync('./data/currency.json', `./data/backups/currency-${d.toISOString().substr(0, 13)}.json`)
 		file.copyFileSync('./data/leaderboard.json', `./data/backups/leaderboard-${d.toISOString().substr(0, 13)}.json`)
-		temp.users.forEach(u => {
-			changeBalance(u, 5)
+		let total = 0
+		Object.keys(temp.users).forEach(u => {
+			changeBalance(u, temp.users[u])
+			total += temp.users[u]
 		});
-		temp.users = []
+		temp.users = {}
 		file.writeFile('./data/temp.json', JSON.stringify(temp), () => {})
 		cooldowns = {}
-		print('Backups were made and hourly cats given out.')
+		print(`Backups were made and ${total} hourly cats given out.`)
 	}
 }, 60000);
 
 const underbox		= '456889532227387403'
 const youwhat		= '<:youwhat:534811127461445643>'
-const odds			= 0.5
+const odds			= 0.7
 var cooldowns 		= {}
 
 // Events
@@ -371,7 +372,14 @@ bot.on('message', msg =>
 
 	if (temp.channels !== undefined) { if (!temp.channels.includes(msg.channel.id)) { return } }
 	
-	if (!temp.users.includes(msg.author.id)) { temp.users.push(msg.author.id) }
+	if (!temp.users.hasOwnProperty(msg.author.id)) { 
+		temp.users[msg.author.id] = 1
+	} else {
+		if (temp.users[msg.author.id] < 5) {
+			temp.users[msg.author.id] += 1
+		}
+	}
+	file.writeFile('./data/temp.json', JSON.stringify(temp), () => {})
 
 	if (maintenance && msg.content !== `${cfg.prefix}maintenance false`) { return }
 	

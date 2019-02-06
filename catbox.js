@@ -435,17 +435,19 @@ function sendCat(msg)
 	let catStreak = 0
 	let rng = Math.random()
 	let cats = ''
-    while (rng <= odds)
+	let curOdds = 1 - (catStreak * odds / (1 + catStreak * odds))
+    while (rng <= curOdds)
 	{
 		cats += youwhat
 		catStreak++
 		rng = Math.random()
+		curOdds = 1 - (catStreak * odds / (1 + catStreak * odds))
 	}
 	if (catStreak > 0)
 	{
 		saveHighscore(msg.author.id, catStreak)
 		changeBalance(msg.author.id, catStreak)
-		msg.channel.send(`**${msg.author.username}** earned ${catStreak} ${pluralize('cat', catStreak)} (${(Math.pow(odds, catStreak) * 100).toFixed(2)}% chance)\n${cats}`)
+		msg.channel.send(`**${msg.author.username}** earned ${catStreak} ${pluralize('cat', catStreak)} (${(curOdds * 100).toFixed(2)}% chance)\n${cats}`)
 	}
 }
 

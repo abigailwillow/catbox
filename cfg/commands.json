@@ -50,7 +50,7 @@
 	{
 		"tip": "Spawns cats out of thin air.",
 		"args": ["member", "number"],
-		"category": "Admin",
+		"category": "Debug",
 		"admin": 2,
 		"enabled": true
 	},
@@ -77,7 +77,7 @@
 	{
 		"tip": "Start a new betting round or join an existing one.",
 		"args": ["number"],
-		"category": "General",
+		"category": "Entertainment",
 		"admin": 0,
 		"enabled": true
 	},
@@ -86,16 +86,16 @@
 	{
 		"tip": "Start a new guessing round or join an existing one. The user with the closest guess wins.",
 		"args": ["number?"],
-		"category": "General",
+		"category": "Entertainment",
 		"admin": 0,
 		"enabled": true
 	},
 
 	"check":
 	{
-		"tip": "Check how far off your guess is from the actual number.",
+		"tip": "Check how far off your guess is from the actual guess number.",
 		"args": ["number"],
-		"category": "General",
+		"category": "Entertainment",
 		"admin": 0,
 		"enabled": true
 	},

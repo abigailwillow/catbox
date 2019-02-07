@@ -576,8 +576,11 @@ function replaceVar(str, arg) {
 function shuffleArray(a) {
     for (let i = a.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1))
-        [a[i], a[j]] = [a[j], a[i]]
-    } return a
+		let x = a[i]
+		a[i] = a[j]
+		a[j] = x
+	} 
+	return a
 }
 
 bot.login(cfg.token)

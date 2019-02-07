@@ -6,8 +6,7 @@ const cmds 		= require('./cfg/commands.json')
 const txt		= require('./res/strings.json')
 const command 	= require('./lib/commandhandler.js')
 const parser	= require('./lib/commandparser.js')
-var leaderboard = require('./data/leaderboard.json')
-var currency	= require('./data/currency.json')
+var data		= require('./data/userdata.json')
 var temp		= require('./data/temp.json')
 var maintenance = false
 var betRound	= { roundTime: 30, roundInterval: 5, inProgress: false, total: 0, players: {} }
@@ -75,38 +74,40 @@ command.linkCommand('send', (msg, channel, message) => {
 })
 
 command.linkCommand('leaderboard', msg => {
-	leaderboard = require('./data/leaderboard.json')
-	currency = require('./data/currency.json')
+    data = require('./data/userdata.json')
 
-	let richestUsers = Object.keys(currency).sort((a, b) => {
-		if (bot.users.get(a) != undefined) { return currency[a] - currency[b] }
+	let validUsers = []; let richestStr = ''; let streakStr = ''
+	data.forEach(user => {
+		let m = getMember(msg.guild, user.id)
+		if (m !== undefined && m !== null) {
+			validUsers.push(user)
+		}
 	})
-	richestUsers = richestUsers.reverse().slice(0, Math.min(richestUsers.length, 10))
-	let highestStreaks = Object.keys(leaderboard).sort((a, b) => {
-		if (bot.users.get(a) != undefined) { return leaderboard[a] - leaderboard[b] }
-	})
-	highestStreaks = highestStreaks.reverse().slice(0, Math.min(highestStreaks.length, 5))
 
-	let streakStr = richStr = ''
+	let richest = validUsers.sort((a, b) => b.balance - a.balance)
+	richest = richest.slice(0, Math.min(richest.length, 10))
+
+	let streaks = validUsers.sort((a, b) => b.streak - a.streak)
+	streaks = streaks.slice(0, Math.min(streaks.length, 5))
+
+	for (let i = 0; i < richest.length; i++) {
+		let user = richest[i]
+		richestStr += `\`${('0' + (i + 1)).slice(-2)}.\` ${user.balance} ${pluralize('cat', user.balance)} - **${getMember(msg.guild, user.id).displayName}\n**`
+	}
+
+	for (let i = 0; i < streaks.length; i++) {
+		let user = streaks[i]
+		streakStr += `\`${('0' + (i + 1)).slice(-2)}.\` ${user.streak} ${pluralize('cat', user.streak)} - **${getMember(msg.guild, user.id).displayName}\n**`
+	}
+
 	let embed = new discord.RichEmbed()
 	.setAuthor('Catbox Leaderboard', 'https://cdn.discordapp.com/attachments/456889532227387405/538354324028260377/youwhat_hd.png')
 	.setColor(cfg.embedcolor)
 	.setTimestamp()
+	.addField('10 Richest Users', richestStr)
+	.addBlankField()
+	.addField('5 Highest Catstreaks', streakStr)
 
-	for (let i = 0; i < richestUsers.length; i++) {
-		const bal = currency[richestUsers[i]];
-		richStr += `\`${('0' + (i + 1)).slice(-2)}.\` ${bal} ${pluralize('cat', bal)} - **${bot.users.get(richestUsers[i]).username}**\n`
-	}
-	embed.addField('10 Richest Users', richStr)
-
-	embed.addBlankField()
-
-	for (let i = 0; i < highestStreaks.length; i++) {
-		const score = leaderboard[highestStreaks[i]]
-		streakStr += `\`${('0' + (i + 1)).slice(-2)}.\` ${score} ${pluralize('cat', score)} - **${bot.users.get(highestStreaks[i]).username}**\n`
-	}
-
-	embed.addField('5 Highests Catstreaks', streakStr)
 	msg.channel.send({embed})
 })
 
@@ -178,7 +179,7 @@ command.linkCommand('guess', (msg, guess) => {
 		temp.guessRound.max = randomInt(1, 5) * 100
 		temp.guessRound.num = randomInt(0, temp.guessRound.max)
 		temp.guessRound.total = Math.round(temp.guessRound.max / 20)
-		file.writeFile('./data/temp.json', JSON.stringify(temp), () => {})
+		file.writeFile('./data/temp.json', JSON.stringify(temp, null, 4), () => {})
 	}
 
 	if (!guess) { 
@@ -200,7 +201,7 @@ command.linkCommand('guess', (msg, guess) => {
 			msg.channel.send(generateGuessRoundEmbed())
 		}
 
-		file.writeFile('./data/temp.json', JSON.stringify(temp), () => {})
+		file.writeFile('./data/temp.json', JSON.stringify(temp, null, 4), () => {})
 	}
 })
 
@@ -300,7 +301,7 @@ command.linkCommand('config', (msg, key, value) => {
 					msg.channel.send(list)
 				} else {
 					let channel = getChannel(msg.guild, value)
-					if (channel === null) { 
+					if (channel === null || channel === undefined) {
 						msg.channel.send(txt.err_no_channel) 
 					} else {
 						if (temp.channels.includes(channel.id)) {
@@ -312,7 +313,7 @@ command.linkCommand('config', (msg, key, value) => {
 						}
 					}
 				}
-				file.writeFile('./data/temp.json', JSON.stringify(temp), () => {})
+				file.writeFile('./data/temp.json', JSON.stringify(temp, null, 4), () => {})
 				break;
 			default:
 				msg.channel.send(`Sorry boss, I could not find any attribute called '${key}'. Try \`${cfg.prefix}config list\``)
@@ -333,15 +334,14 @@ setInterval(() => {
 	let d = new Date()
 	if (d.getMinutes() === 0)
 	{
-		file.copyFileSync('./data/currency.json', `./data/backups/currency-${d.toISOString().substr(0, 13)}.json`)
-		file.copyFileSync('./data/leaderboard.json', `./data/backups/leaderboard-${d.toISOString().substr(0, 13)}.json`)
+		file.writeFile(`./data/backups/userdata-${d.toISOString().substr(0, 13)}.json`, JSON.stringify(data), () => {})
 		let total = 0
 		Object.keys(temp.users).forEach(u => {
 			changeBalance(u, temp.users[u])
 			total += temp.users[u]
 		});
 		temp.users = {}
-		file.writeFile('./data/temp.json', JSON.stringify(temp), () => {})
+		file.writeFile('./data/temp.json', JSON.stringify(temp, null, 4), () => {})
 		cooldowns = {}
 		print(`Backups were made and ${total} hourly cats given out.`)
 	}
@@ -351,6 +351,7 @@ const underbox		= '456889532227387403'
 const youwhat		= '<:youwhat:534811127461445643>'
 const odds			= 0.7
 var cooldowns 		= {}
+temp.catNum			= randomInt(1, 20)
 
 // Events
 bot.on('ready', () =>
@@ -370,32 +371,40 @@ bot.on('message', msg =>
 {
 	msg.content = msg.cleanContent
 
+	if (msg.author.bot ||
+		(maintenance && msg.content !== `${cfg.prefix}maintenance false`)) { return }
+
 	if (temp.channels !== undefined) { if (!temp.channels.includes(msg.channel.id)) { return } }
 	
-	if (!temp.users.hasOwnProperty(msg.author.id)) { 
-		temp.users[msg.author.id] = 1
-	} else {
+	if (temp.users.hasOwnProperty(msg.author.id)) { 
 		if (temp.users[msg.author.id] < 5) {
 			temp.users[msg.author.id] += 1
 		}
+	} else {
+		temp.users[msg.author.id] = 1
 	}
-	file.writeFile('./data/temp.json', JSON.stringify(temp), () => {})
-
-	if (maintenance && msg.content !== `${cfg.prefix}maintenance false`) { return }
+	file.writeFile('./data/temp.json', JSON.stringify(temp, null, 4), () => {})
 	
 	if (msg.guild !== null) {
 		if (msg.guild.id == underbox && msg.content == youwhat && msg.author.id != bot.user.id)
 		{ 
-			if (getBalance(msg.author.id) > 0) { sendCat(msg) }
-			else { msg.channel.send(txt.warn_no_cats) }
+			if (getBalance(msg.author.id) > 0) {
+				sendCat(msg)
+			} else { 
+				msg.channel.send(txt.warn_no_cats) 
+			}
 		}
 	}
 
 	// Return if message is either from a bot or doesn't start with command prefix. Keep non-commands above this line.
-	if (msg.author.bot || msg.content.substring(0, cfg.prefix.length) !== cfg.prefix) { return }
+	if (msg.content.substring(0, cfg.prefix.length) !== cfg.prefix) { return }
 
-	if (cooldowns[msg.author.id] > Date.now()) { msg.channel.send(txt.warn_cooldown); return }
-	else { cooldowns[msg.author.id] = Date.now() + cfg.cooldown }
+	if (cooldowns[msg.author.id] > Date.now()) { 
+		msg.channel.send(txt.warn_cooldown)
+		return 
+	} else { 
+		cooldowns[msg.author.id] = Date.now() + cfg.cooldown 
+	}
 
 	let cmd = parser(msg.content)
 
@@ -423,14 +432,12 @@ bot.on('message', msg =>
 	}
 });
 
-function print(msg)
-{
+function print(msg) {
 	var time = new Date().toISOString().substr(11, 8)
     console.log(`(${time}) ${msg}`)
 }
 
-function sendCat(msg)
-{
+function sendCat(msg) {
 	changeBalance(msg.author.id, -1)
 	let catStreak = 0
 	let rng = Math.random()
@@ -451,8 +458,7 @@ function sendCat(msg)
 	}
 }
 
-function generateRoundEmbed()
-{
+function generateRoundEmbed() {
 	let pList = ''
 	let embed = new discord.RichEmbed()
 	.setAuthor(`Betting Round - Total: ${betRound.total} ${pluralize('cat', betRound.total)}`, 'https://cdn.discordapp.com/attachments/456889532227387405/538354324028260377/youwhat_hd.png')
@@ -468,12 +474,11 @@ function generateRoundEmbed()
 	return embed
 }
 
-function getGuessCheckCost () {
-	return 25 + Math.floor(temp.guessRound.guessed.length/5)
+function getGuessCheckCost() {
+	return 25 + Math.floor(temp.guessRound.guessed.length / 5)
 }
 
-function generateGuessRoundEmbed()
-{
+function generateGuessRoundEmbed() {
 	let numList = `Maximum guess for this round: ${temp.guessRound.max}\n\nGuessed numbers: `
 	let embed = new discord.RichEmbed()
 	.setAuthor(`Guessing Round - Total: ${temp.guessRound.total} ${pluralize('cat', temp.guessRound.total)}`, 'https://cdn.discordapp.com/attachments/456889532227387405/538354324028260377/youwhat_hd.png')
@@ -490,81 +495,85 @@ function generateGuessRoundEmbed()
 	return embed
 }
 
-function getMember(guild, identifier)
-{
+function getMember(guild, identifier) {
 	identifier = identifier.toLowerCase()
-	let member = undefined
-	member = guild.members.find(x => x.id === identifier || x.user.username.toLowerCase() === identifier || ((x.nickname !== null) ? x.nickname.toLowerCase() === identifier : false))
-	return member
+	return guild.members.find(x => x.id === identifier || x.user.username.toLowerCase() === identifier || ((x.nickname !== null) ? x.nickname.toLowerCase() === identifier : false))
 }
 
-function getChannel(guild, identifier)
-{
+function getChannel(guild, identifier) {
 	identifier = identifier.toLowerCase()
-	let channel = undefined
-	channel = guild.channels.find(x => x.id === identifier || x.name === identifier)
+	let channel = guild.channels.find(x => x.id === identifier || x.name === identifier)
 	return channel
 }
 
-function saveHighscore(userID, score)
-{
-	var filename = './data/leaderboard.json'
-	leaderboard = require(filename)
-	if (!leaderboard.hasOwnProperty(userID))
-	{
-		leaderboard[userID] = score
-		file.writeFile(filename, JSON.stringify(leaderboard), () => {})
-	}
-	else if (leaderboard[userID] < score) 
-	{ 
-		leaderboard[userID] = score
-		file.writeFile(filename, JSON.stringify(leaderboard), () => {})
+function saveHighscore(userID, streak) {
+	var filename = './data/userdata.json'
+	data = require(filename)
+
+	let user = data.find(x => x.id === userID)
+	if (user === undefined) {
+		addUser(userID, null, streak)
+	} else {
+		user.streak = (user.streak < streak) ? streak : user.streak
+		saveData()
 	}
 }
 
-function changeBalance(userID, amount, callback)
-{
-	var filename = './data/currency.json'
-	currency = require(filename)
+function addUser(userID, balance, streak) {
+	var filename = './data/userdata.json'
+	data = require(filename)
+	
+	if (data.find(x => x.id === userID) === undefined) {
+		data.push({
+			id: userID,
+			balance: (balance === undefined || balance === null) ? 0 : balance,
+			streak: (streak === undefined || streak === null) ? 0 : streak
+		})
 
-	if (currency.hasOwnProperty(userID)) {
-		currency[userID] += amount
-	} else { 
-		currency[userID] = amount
+		saveData()
+	}
+}
+
+function saveData() {
+	file.writeFile('./data/userdata.json', JSON.stringify(data, null, 4), () => {})
+}
+
+function changeBalance(userID, amount, callback) {
+	var filename = './data/userdata.json'
+	data = require(filename)
+
+	let user = data.find(x => x.id === userID)
+
+	if (user !== undefined) {
+		user.balance += amount
+	} else {
+		addUser(userID, amount)
 	}
 
-	file.writeFile(filename, JSON.stringify(currency), () => {})
-
-	if (callback != null) {
+	saveData()
+	
+	if (callback !== undefined) {
 		callback()
 	}
 }
 
-function getBalance(userID)
-{
-	currency = require('./data/currency.json')
-	let bal = 0
+function getBalance(userID) {
+	data = require('./data/userdata.json')
 
-	if (currency.hasOwnProperty(userID)) 
-	{
-		bal = currency[userID]
-	}
-	return bal
+	let user = data.find(x => x.id === userID)
+	return (user === undefined) ? 0 : user.balance
 }
 
-function randomInt(min, max)
-{
+function randomInt(min, max) {
 	return Math.round(Math.random() * (max - min) + min)
 }
 
-function pluralize(word, count)
-{
+function pluralize(word, count) {
 	if (Math.abs(count) != 1) { return word + 's' }
 	else { return word }
 }
 
-function replaceVar(str, arg)
-{
+function replaceVar(str, arg) {
 	return str.replace(/%\w+%/g, arg)
 }
 

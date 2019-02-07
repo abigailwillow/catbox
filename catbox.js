@@ -5,7 +5,6 @@ const cfg 		= require('./cfg/config.json')
 const cmds 		= require('./cfg/commands.json')
 const txt		= require('./res/strings.json')
 const command 	= require('./lib/commandhandler.js')
-const parser	= require('./lib/commandparser.js')
 var data		= require('./data/userdata.json')
 var temp		= require('./data/temp.json')
 var maintenance = false
@@ -16,8 +15,8 @@ command.init(bot, cmds)
 command.linkCommand('help', msg => {
 	let categories = []
 	Object.keys(cmds).forEach(cmd => {
-		if (!categories.includes(cmds[cmd].category)) { categories.push(cmds[cmd].category) }
-	}); 
+		if (!categories.includes(cmds[cmd].category) && cmds[cmd].admin !== 2) { categories.push(cmds[cmd].category) }
+	})
 	let embed = new discord.RichEmbed()
 	.setAuthor('Catbox Commands', 'https://cdn.discordapp.com/attachments/456889532227387405/538354324028260377/youwhat_hd.png')
 	.setColor(cfg.embedcolor)
@@ -25,13 +24,13 @@ command.linkCommand('help', msg => {
 	categories.forEach(cat => {
 		let txt = ''
 		Object.keys(cmds).forEach(cmd => {
-			if (cmds[cmd].category === cat)
+			if (cmds[cmd].category === cat && cmds[cmd].admin !== 2)
 			{
 				txt += `\`${cfg.prefix}${cmd} ${String(cmds[cmd].args).replace(',',' ')}\`­­­­­­­­­­­­­­­\n${cmds[cmd].tip}\n`
 			}
-		});
+		})
 		embed.addField(cat + ' commands', txt)
-	});
+	})
 	msg.channel.send({embed})
 })
 
@@ -115,7 +114,7 @@ command.linkCommand('spawn', (msg, member, amount) => {
 	if (member instanceof Map) {
 		member.forEach(m => {
 			changeBalance(m.id, amount)
-		});
+		})
 
 		msg.channel.send(`**Everyone** has received ${amount} ${pluralize('cat', amount)}.`)
 	} else {
@@ -157,7 +156,7 @@ command.linkCommand('maintenance', (msg, bool) => {
 	{
 		bot.guilds.forEach(guild => {
 			guild.members.get(bot.user.id).setNickname(bot.user.username + ' (maintenance)')
-		});
+		})
 		msg.channel.send('Maintenance mode enabled.')
 		print('Maintenance mode enabled.')
 	}
@@ -165,7 +164,7 @@ command.linkCommand('maintenance', (msg, bool) => {
 	{
 		bot.guilds.forEach(guild => {
 			guild.members.get(bot.user.id).setNickname(bot.user.username)
-		});
+		})
 		msg.channel.send('Maintenance mode disabled.')
 		print('Maintenance mode disabled.')
 	}
@@ -194,7 +193,7 @@ command.linkCommand('guess', (msg, guess) => {
 		if (guess === temp.guessRound.num) {
 			msg.channel.send(`**${user.username}** won ${temp.guessRound.total} ${pluralize('cat', temp.guessRound.total)}! Winning number was ${temp.guessRound.num}.`)
 			changeBalance(user.id, temp.guessRound.total)
-			temp.guessRound.num = false;
+			temp.guessRound.num = false
 			temp.guessRound.guessed = []
 		} else {
 			msg.channel.send(`**${user.username}** guessed number ${guess}.`)
@@ -256,7 +255,7 @@ command.linkCommand('bet', (msg, amount) => {
 		betRound.startTime = new Date().getTime()
 		msg.channel.send(`**${user.username}** just started a betting round with ${amount} ${pluralize('cat', amount)}! You have ${betRound.roundTime} seconds to join in!`)
 		msg.channel.send(generateRoundEmbed()).then(msg => roundMsg = msg)
-		var IID = setInterval(() => { roundMsg.edit('', generateRoundEmbed()) }, betRound.roundInterval * 1000);
+		var IID = setInterval(() => { roundMsg.edit('', generateRoundEmbed()) }, betRound.roundInterval * 1000)
 		setTimeout(() => {
 			clearInterval(IID)
 			roundMsg.edit('', generateRoundEmbed())
@@ -265,11 +264,11 @@ command.linkCommand('bet', (msg, amount) => {
 			shuffleArray(Object.keys(betRound.players)).forEach(ply => {
 				total += betRound.players[ply] / betRound.total
 				if (total >= winNum && winner == undefined) { winner = ply }
-			});
+			})
 			msg.channel.send(`**${bot.users.get(winner).username}** won ${betRound.total} ${pluralize('cat', betRound.total)} with a ${((betRound.players[winner] / betRound.total) * 100).toFixed(2)}% chance!`)
 			changeBalance(winner, betRound.total)
 			betRound.inProgress = false; betRound.total = 0; betRound.players = {}
-		}, betRound.roundTime * 1000);
+		}, betRound.roundTime * 1000)
 	}
 	else
 	{
@@ -314,10 +313,10 @@ command.linkCommand('config', (msg, key, value) => {
 					}
 				}
 				file.writeFile('./data/temp.json', JSON.stringify(temp, null, 4), () => {})
-				break;
+				break
 			default:
 				msg.channel.send(`Sorry boss, I could not find any attribute called '${key}'. Try \`${cfg.prefix}config list\``)
-				break;
+				break
 		}
 	}
 })
@@ -339,23 +338,21 @@ setInterval(() => {
 		Object.keys(temp.users).forEach(u => {
 			changeBalance(u, temp.users[u])
 			total += temp.users[u]
-		});
+		})
 		temp.users = {}
 		file.writeFile('./data/temp.json', JSON.stringify(temp, null, 4), () => {})
 		cooldowns = {}
 		print(`Backups were made and ${total} hourly cats given out.`)
 	}
-}, 60000);
+}, 60000)
 
-const underbox		= '456889532227387403'
-const youwhat		= '<:youwhat:534811127461445643>'
-const odds			= 0.7
-var cooldowns 		= {}
-temp.catNum			= randomInt(1, 20)
+const youwhat = '<:youwhat:534811127461445643>'
+const odds = 0.7
+var cooldowns = {}
+temp.catNum	= randomInt(1, 20)
 
 // Events
-bot.on('ready', () =>
-{
+bot.on('ready', () => {
 	print(`Logged in as ${bot.user.tag}!`)
 	print(`Currently serving ${bot.guilds.size} servers and ${bot.users.size} users.\n`)
 	bot.user.setPresence({
@@ -365,10 +362,9 @@ bot.on('ready', () =>
 			type: cfg.activityType.toUpperCase()
 		}
 	})
-});
+})
 
-bot.on('message', msg =>
-{
+bot.on('message', msg => {
 	msg.content = msg.cleanContent
 
 	if (msg.author.bot ||
@@ -386,7 +382,7 @@ bot.on('message', msg =>
 	file.writeFile('./data/temp.json', JSON.stringify(temp, null, 4), () => {})
 	
 	if (msg.guild !== null) {
-		if (msg.guild.id == underbox && msg.content == youwhat && msg.author.id != bot.user.id)
+		if (msg.content == youwhat && msg.author.id != bot.user.id)
 		{ 
 			if (getBalance(msg.author.id) > 0) {
 				sendCat(msg)
@@ -406,9 +402,9 @@ bot.on('message', msg =>
 		cooldowns[msg.author.id] = Date.now() + cfg.cooldown 
 	}
 
-	let cmd = parser(msg.content)
+	let cmd = command.parseCommand(msg.content)
 
-	// If the we cannot find the command let's try to find a command with that alias instead.
+	// If the we cannot find the command we'll try to find a command with that alias instead.
 	if (cmds[cmd.cmd] === undefined) {
 		let alias = Object.keys(cmds).find(x => cmds[x].alias === cmd.cmd)
 		if (alias !== undefined) {
@@ -430,7 +426,7 @@ bot.on('message', msg =>
 			msg.channel.send('Internal error: ' + err.message)
 		}
 	}
-});
+})
 
 function print(msg) {
 	var time = new Date().toISOString().substr(11, 8)
@@ -466,7 +462,7 @@ function generateRoundEmbed() {
 	Object.keys(betRound.players).forEach(ply => {
 		let curAmount = betRound.players[ply]
 		pList += `${curAmount} ${pluralize('cat', curAmount)} (${((curAmount / betRound.total) * 100).toFixed(2)}%) - **${bot.users.get(ply).username}**\n`
-	});
+	})
 	embed.setDescription(pList)
 	let timeLeft = Math.round(betRound.roundTime - (new Date().getTime() - betRound.startTime) / 1000)
 	embed.setFooter(`${timeLeft} seconds left.`)
@@ -579,9 +575,9 @@ function replaceVar(str, arg) {
 
 function shuffleArray(a) {
     for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [a[i], a[j]] = [a[j], a[i]];
-    } return a;
+        const j = Math.floor(Math.random() * (i + 1))
+        [a[i], a[j]] = [a[j], a[i]]
+    } return a
 }
 
 bot.login(cfg.token)

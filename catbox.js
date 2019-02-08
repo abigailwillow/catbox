@@ -91,12 +91,12 @@ command.linkCommand('leaderboard', msg => {
 
 	for (let i = 0; i < richest.length; i++) {
 		let user = richest[i]
-		richestStr += `\`${('0' + (i + 1)).slice(-2)}.\` ${user.balance} ${pluralize('cat', user.balance)} - **${getMember(msg.guild, user.id).displayName}\n**`
+		richestStr += `\`${('0' + (i + 1)).slice(-2)}.\` ${user.balance.toLocaleString()} ${pluralize('cat', user.balance)} - **${getMember(msg.guild, user.id).displayName}\n**`
 	}
 
 	for (let i = 0; i < streaks.length; i++) {
 		let user = streaks[i]
-		streakStr += `\`${('0' + (i + 1)).slice(-2)}.\` ${user.streak} ${pluralize('cat', user.streak)} - **${getMember(msg.guild, user.id).displayName}\n**`
+		streakStr += `\`${('0' + (i + 1)).slice(-2)}.\` ${user.streak.toLocaleString()} ${pluralize('cat', user.streak)} - **${getMember(msg.guild, user.id).displayName}\n**`
 	}
 
 	let embed = new discord.RichEmbed()
@@ -116,10 +116,10 @@ command.linkCommand('spawn', (msg, member, amount) => {
 			changeBalance(m.id, amount)
 		})
 
-		msg.channel.send(`**Everyone** has received ${amount} ${pluralize('cat', amount)}.`)
+		msg.channel.send(`**Everyone** has received ${amount.toLocaleString()} ${pluralize('cat', amount)}.`)
 	} else {
 		changeBalance(member.id, amount, _ => {
-			msg.channel.send(`**${member.displayName}** was granted ${amount} ${pluralize('cat', amount)}.`)
+			msg.channel.send(`**${member.displayName}** was granted ${amount.toLocaleString()} ${pluralize('cat', amount)}.`)
 		})
 	}
 })
@@ -136,7 +136,7 @@ command.linkCommand('give', (msg, member, amount) => {
 		if (getBalance(user.id) >= amount) {
 			changeBalance(user.id, -amount)
 			changeBalance(member.id, amount, _ => {
-				msg.channel.send(`**${user.displayName}** has given ${amount} ${pluralize('cat', amount)} to **${member.displayName}**.`)
+				msg.channel.send(`**${user.displayName}** has given ${amount.toLocaleString()} ${pluralize('cat', amount)} to **${member.displayName}**.`)
 			})
 		} else {
 			msg.channel.send(txt.err_no_cats)
@@ -148,7 +148,7 @@ command.linkCommand('balance', (msg, member) => {
 	let user = member ? member.user : msg.author
 
 	let bal = getBalance(user.id)
-	msg.channel.send(`**${user.username}** has ${bal} ${pluralize('cat', bal)}`)
+	msg.channel.send(`**${user.username}** has ${bal.toLocaleString()} ${pluralize('cat', bal)}`)
 })
 
 command.linkCommand('maintenance', (msg, bool) => {
@@ -242,7 +242,7 @@ command.linkCommand('bet', (msg, amount) => {
 	changeBalance(user.id, -amount)
 	betRound.total += amount
 	if (betRound.players.hasOwnProperty(user.id)) {
-		msg.channel.send(`**${user.username}** added ${amount} ${pluralize('cat', amount)}.`)
+		msg.channel.send(`**${user.username}** added ${amount.toLocaleString()} ${pluralize('cat', amount)}.`)
 		betRound.players[user.id] += amount
 		return
 	} else {
@@ -253,7 +253,7 @@ command.linkCommand('bet', (msg, amount) => {
 	{
 		betRound.inProgress = true
 		betRound.startTime = new Date().getTime()
-		msg.channel.send(`**${user.username}** just started a betting round with ${amount} ${pluralize('cat', amount)}! You have ${betRound.roundTime} seconds to join in!`)
+		msg.channel.send(`**${user.username}** just started a betting round with ${amount.toLocaleString()} ${pluralize('cat', amount)}! You have ${betRound.roundTime} seconds to join in!`)
 		msg.channel.send(generateRoundEmbed()).then(msg => roundMsg = msg)
 		var IID = setInterval(() => { roundMsg.edit('', generateRoundEmbed()) }, betRound.roundInterval * 1000)
 		setTimeout(() => {
@@ -265,14 +265,14 @@ command.linkCommand('bet', (msg, amount) => {
 				total += betRound.players[ply] / betRound.total
 				if (total >= winNum && winner == undefined) { winner = ply }
 			})
-			msg.channel.send(`**${bot.users.get(winner).username}** won ${betRound.total} ${pluralize('cat', betRound.total)} with a ${((betRound.players[winner] / betRound.total) * 100).toFixed(2)}% chance!`)
+			msg.channel.send(`**${bot.users.get(winner).username}** won ${betRound.total.toLocaleString()} ${pluralize('cat', betRound.total)} with a ${((betRound.players[winner] / betRound.total) * 100).toFixed(2)}% chance!`)
 			changeBalance(winner, betRound.total)
 			betRound.inProgress = false; betRound.total = 0; betRound.players = {}
 		}, betRound.roundTime * 1000)
 	}
 	else
 	{
-		msg.channel.send(`**${user.username}** joined the current betting round with ${amount} ${pluralize('cat', amount)} (${((amount / betRound.total) * 100).toFixed(2)}% chance).`)
+		msg.channel.send(`**${user.username}** joined the current betting round with ${amount.toLocaleString()} ${pluralize('cat', amount)} (${((amount / betRound.total) * 100).toFixed(2)}% chance).`)
 	}
 })
 
@@ -457,11 +457,11 @@ function sendCat(msg) {
 function generateRoundEmbed() {
 	let pList = ''
 	let embed = new discord.RichEmbed()
-	.setAuthor(`Betting Round - Total: ${betRound.total} ${pluralize('cat', betRound.total)}`, 'https://cdn.discordapp.com/attachments/456889532227387405/538354324028260377/youwhat_hd.png')
+	.setAuthor(`Betting Round - Total: ${betRound.total.toLocaleString()} ${pluralize('cat', betRound.total)}`, 'https://cdn.discordapp.com/attachments/456889532227387405/538354324028260377/youwhat_hd.png')
 	.setColor(cfg.embedcolor)
 	Object.keys(betRound.players).forEach(ply => {
 		let curAmount = betRound.players[ply]
-		pList += `${curAmount} ${pluralize('cat', curAmount)} (${((curAmount / betRound.total) * 100).toFixed(2)}%) - **${bot.users.get(ply).username}**\n`
+		pList += `${curAmount.toLocaleString()} ${pluralize('cat', curAmount)} (${((curAmount / betRound.total) * 100).toFixed(2)}%) - **${bot.users.get(ply).username}**\n`
 	})
 	embed.setDescription(pList)
 	let timeLeft = Math.round(betRound.roundTime - (new Date().getTime() - betRound.startTime) / 1000)

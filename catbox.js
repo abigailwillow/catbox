@@ -461,13 +461,11 @@ function sendCats(msg, amount) {
 	// print(`**odds:** ${temp.odds}\n**oddsrate:** ${temp.deltaOdds}\n**hotness:** ${hotness}\n**streak:** ${catStreak}\n**penalty:** ${amount}\n**profit:** ${profit}\n`)
 
 	changeBalance(msg.author.id, profit)
-	if (sum > 0) {
-		let newhs = saveHighscore(msg.author.id, max)
-		msg.channel.send(`**${msg.author.username}** entered ${amount} ${pluralize('cat', amount)} and earned back ${sum} ${pluralize('cat', sum)} ` + 
-		`**(${Math.abs(profit)} ${pluralize('cat', profit)} ${(profit >= 0) ? 'profit': 'loss'})** ` +
-		`${(profit < 0) ? '😤' : (profit === 0) ? '😅' : reactions[randomInt(0, reactions.length - 1)]}` + 
-		`${(newhs) ? `\n*New personal best catstreak: ${max} ${pluralize('cat', max)}!*` : ''}\n${cats}`)
-	}
+	let newhs = saveHighscore(msg.author.id, max)
+	msg.channel.send(`**${msg.author.username}** entered ${amount} ${pluralize('cat', amount)} and earned back ${sum} ${pluralize('cat', sum)} ` + 
+	`**(${Math.abs(profit)} ${pluralize('cat', profit)} ${(profit >= 0) ? 'profit': 'loss'})** ` +
+	`${(profit < 0) ? '😤' : (profit === 0) ? '😅' : reactions[randomInt(0, reactions.length - 1)]}` + 
+	`${(newhs) ? `\n*New personal best catstreak: ${max} ${pluralize('cat', max)}!*` : ''}\n${cats}`)
 }
 
 function generateRoundEmbed() {

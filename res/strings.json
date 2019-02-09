@@ -1,6 +1,6 @@
 {
 	"err_no_admin": "You need to be an administrator to use this command.",
-	"err_no_operator": "You need to be an operator to use this command.",
+	"err_no_operator": "You need to be an opurrator to use this command.",
 	"err_invalid_cmd": "Unknown command, type %prefix%help for a full list of commands.",
 	"err_invalid_arg": "Invalid argument, expected a ",
 	"err_no_channel": "Could not find that channel.",
@@ -8,8 +8,7 @@
 	"err_no_cats": "You don't have enough cats to do that.",
 	"err_invalid_amt": "Invalid amount of cats.",
 	"err_no_everyone": "You can't target everyone.",
-	"warn_no_cats": "You have no more cats. You'll get some new ones soon.",
 	"warn_cooldown": "Please wait a bit between using commands.",
 	"ad_title": "Encrypted Laser",
-	"ad_text": "This bot is hosted with [PrimeNodes](https://primenodes.com/t/hybrid).\nIf you want affordable quality hosting for your own Discord bot use code **COSMOS** for 5% off on any VPS, or 10% off any [Encrypted Laser](https://account.elhostingservices.com/aff.php?aff=82) game server."
+	"ad_text": "This bot is hosted with [PrimeNodes](https://primenodes.com/t/hybrid).\nIf you want affordable quality hosting for your own Discord bot use code **COSMOS** for 5% off on any VPS, or 10% off any [Encrypted Laser](https://elhs.co/t/game) game server."
 }

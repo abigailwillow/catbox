@@ -300,7 +300,7 @@ command.linkCommand('config', (msg, key, value) => {
 					msg.channel.send(list)
 				} else {
 					let channel = getChannel(msg.guild, value)
-					if (channel === null || channel === undefined) {
+					if (channel == null) {
 						msg.channel.send(txt.err_no_channel) 
 					} else {
 						if (temp.channels.includes(channel.id)) {
@@ -347,9 +347,10 @@ setInterval(() => {
 }, 60000)
 
 const youwhat = '<:youwhat:534811127461445643>'
-const odds = 0.7
 var cooldowns = {}
-temp.catNum	= randomInt(1, 20)
+temp.bots = false
+temp.odds = 0.5
+temp.deltaOdds = 0
 
 // Events
 bot.on('ready', () => {
@@ -367,7 +368,7 @@ bot.on('ready', () => {
 bot.on('message', msg => {
 	msg.content = msg.cleanContent
 
-	if (msg.author.bot ||
+	if ((msg.author.bot && !temp.bots) ||
 		(maintenance && msg.content !== `${cfg.prefix}maintenance false`)) { return }
 
 	if (temp.channels !== undefined) { if (!temp.channels.includes(msg.channel.id)) { return } }
@@ -381,14 +382,12 @@ bot.on('message', msg => {
 	}
 	file.writeFile('./data/temp.json', JSON.stringify(temp, null, 4), () => {})
 	
-	if (msg.guild !== null) {
-		if (msg.content == youwhat && msg.author.id != bot.user.id)
-		{ 
-			if (getBalance(msg.author.id) > 0) {
-				sendCat(msg)
-			} else { 
-				msg.channel.send(txt.warn_no_cats) 
-			}
+	if (msg.content.includes(youwhat) && msg.content.substring(0, cfg.prefix.length) !== cfg.prefix) { 
+		let count = msg.content.split(youwhat).length - 1
+		if (getBalance(msg.author.id) > count) {
+			sendCats(msg, count)
+		} else { 
+			msg.channel.send(txt.err_no_cats) 
 		}
 	}
 
@@ -405,7 +404,7 @@ bot.on('message', msg => {
 	let cmd = command.parseCommand(msg.content)
 
 	// If the we cannot find the command we'll try to find a command with that alias instead.
-	if (cmds[cmd.cmd] === undefined) {
+	if (cmds[cmd.cmd] == null) {
 		let alias = Object.keys(cmds).find(x => cmds[x].alias === cmd.cmd)
 		if (alias !== undefined) {
 			cmd.cmd = alias
@@ -420,7 +419,7 @@ bot.on('message', msg => {
 	} catch (err) { 
 		console.error(err)
 
-		if (err.message === undefined) {
+		if (err.message == null) {
 			msg.channel.send(err)
 		} else {
 			msg.channel.send('Internal error: ' + err.message)
@@ -433,24 +432,41 @@ function print(msg) {
     console.log(`(${time}) ${msg}`)
 }
 
-function sendCat(msg) {
-	changeBalance(msg.author.id, -1)
-	let catStreak = 0
-	let rng = Math.random()
+function sendCats(msg, amount) {
+	let reactions = ['😄', '😍', '😎']
 	let cats = ''
-	let curOdds = 1 - (catStreak * odds / (1 + catStreak * odds))
-    while (rng <= curOdds)
-	{
-		cats += youwhat
-		catStreak++
-		rng = Math.random()
-		curOdds = 1 - (catStreak * odds / (1 + catStreak * odds))
+	let hotness = (temp.odds + 0.5) * amount * 0.04
+	temp.deltaOdds = Math.min(Math.max(-0.5, randomFloat(-hotness, hotness)), 0.5)
+	temp.odds = Math.min(Math.max(0.1, (temp.odds + temp.deltaOdds)), 0.8)
+	// let actualOdds = 1
+	let catStreaks = []
+
+	for (let i = 0; i < amount; i++) {
+		catStreaks[i] = 0
+		while (Math.random() < temp.odds) {
+			catStreaks[i]++
+			// actualOdds *= temp.odds
+		}
 	}
-	if (catStreak > 0)
-	{
-		saveHighscore(msg.author.id, catStreak)
-		changeBalance(msg.author.id, catStreak)
-		msg.channel.send(`**${msg.author.username}** earned ${catStreak} ${pluralize('cat', catStreak)} (${(curOdds * 100).toFixed(2)}% chance)\n${cats}`)
+
+	let sum = catStreaks.reduce((a, b) => a + b, 0)
+	let profit = sum - amount
+	let max = Math.max(...catStreaks)
+	for (let i = 0; i < profit; i++) {
+		if (cats.length < 500) {
+			cats += youwhat
+		}
+	}
+
+	// print(`**odds:** ${temp.odds}\n**oddsrate:** ${temp.deltaOdds}\n**hotness:** ${hotness}\n**streak:** ${catStreak}\n**penalty:** ${amount}\n**profit:** ${profit}\n`)
+
+	changeBalance(msg.author.id, profit)
+	if (sum > 0) {
+		let newhs = saveHighscore(msg.author.id, max)
+		msg.channel.send(`**${msg.author.username}** entered ${amount} ${pluralize('cat', amount)} and earned back ${sum} ${pluralize('cat', sum)} ` + 
+		`**(${Math.abs(profit)} ${pluralize('cat', profit)} ${(profit >= 0) ? 'profit': 'loss'})** ` +
+		`${(profit < 0) ? '😤' : (profit === 0) ? '😅' : reactions[randomInt(0, reactions.length - 1)]}` + 
+		`${(newhs) ? `\n*New personal best catstreak: ${max} ${pluralize('cat', max)}!*` : ''}\n${cats}`)
 	}
 }
 
@@ -507,11 +523,14 @@ function saveHighscore(userID, streak) {
 	data = require(filename)
 
 	let user = data.find(x => x.id === userID)
-	if (user === undefined) {
+	if (user == null) {
 		addUser(userID, null, streak)
+		return true
 	} else {
-		user.streak = (user.streak < streak) ? streak : user.streak
+		let newhs = (user.streak < streak)
+		user.streak = (newhs) ? streak : user.streak
 		saveData()
+		return newhs
 	}
 }
 
@@ -519,11 +538,11 @@ function addUser(userID, balance, streak) {
 	var filename = './data/userdata.json'
 	data = require(filename)
 	
-	if (data.find(x => x.id === userID) === undefined) {
+	if (data.find(x => x.id === userID) == null) {
 		data.push({
 			id: userID,
-			balance: (balance === undefined || balance === null) ? 0 : balance,
-			streak: (streak === undefined || streak === null) ? 0 : streak
+			balance: (balance == null) ? 0 : balance,
+			streak: (streak == null) ? 0 : streak
 		})
 
 		saveData()
@@ -557,11 +576,15 @@ function getBalance(userID) {
 	data = require('./data/userdata.json')
 
 	let user = data.find(x => x.id === userID)
-	return (user === undefined) ? 0 : user.balance
+	return (user == null) ? 0 : user.balance
 }
 
 function randomInt(min, max) {
 	return Math.round(Math.random() * (max - min) + min)
+}
+
+function randomFloat(min, max) {
+	return Math.random() * (max - min) + min
 }
 
 function pluralize(word, count) {

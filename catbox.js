@@ -436,8 +436,7 @@ function sendCats(msg, amount) {
 	let reactions = ['😄', '😍', '😎']
 	let cats = ''
 	let hotness = (temp.odds + 0.5) * amount * 0.03
-	temp.deltaOdds = Math.min(Math.max(-0.5, randomFloat(-hotness, hotness)), 0.5) + (temp.deltaOdds * 0.5)
-	temp.odds = Math.min(Math.max(0.1, (temp.odds + temp.deltaOdds - ((temp.odds - 0.4) * 0.5))), 0.75)
+	recalculateOdds(hotness, amount)
 	// let actualOdds = 1
 	let catStreaks = []
 
@@ -447,7 +446,7 @@ function sendCats(msg, amount) {
 			catStreaks[i]++
 			// actualOdds *= temp.odds
 		}
-		temp.deltaOdds = Math.min(Math.max(-0.5, randomFloat(-hotness, hotness)), 0.5) + (temp.deltaOdds * 0.5)		
+		recalculateOdds(hotness, amount)
 	}
 
 	let sum = catStreaks.reduce((a, b) => a + b, 0)
@@ -457,10 +456,9 @@ function sendCats(msg, amount) {
 		if (cats.length < 500) {
 			cats += youwhat
 		}
-		temp.deltaOdds = Math.min(Math.max(-0.5, randomFloat(-hotness, hotness)), 0.5) + (temp.deltaOdds * 0.5)
 	}
 
-	// print(`**odds:** ${temp.odds}\n**oddsrate:** ${temp.deltaOdds}\n**hotness:** ${hotness}\n**streak:** ${max}\n**penalty:** ${amount}\n**profit:** ${profit}\n`)
+	print(`**odds:** ${temp.odds}\n**oddsrate:** ${temp.deltaOdds}\n**hotness:** ${hotness}\n**streak:** ${max}\n**penalty:** ${amount}\n**profit:** ${profit}\n`)
 
 	changeBalance(msg.author.id, profit)
 	let newhs = saveHighscore(msg.author.id, max)
@@ -468,6 +466,11 @@ function sendCats(msg, amount) {
 	`**(${Math.abs(profit)} ${pluralize('cat', profit)} ${(profit >= 0) ? 'profit': 'loss'})** ` +
 	`${(profit < 0) ? '😤' : (profit === 0) ? '😅' : reactions[randomInt(0, reactions.length - 1)]}` + 
 	`${(newhs) ? `\n*New personal best catstreak: ${max} ${pluralize('cat', max)}!*` : ''}\n${cats}`)
+}
+
+function recalculateOdds(hotness, amount) {
+	temp.deltaOdds = Math.min(Math.max(-0.5, randomFloat(-hotness, hotness)), 0.5) + (temp.deltaOdds * 0.5)
+	temp.odds = Math.min(Math.max(0.1, (temp.odds + temp.deltaOdds - ((amount * 0.01 + temp.odds - 0.5) * 0.5))), 0.75)
 }
 
 function generateRoundEmbed() {

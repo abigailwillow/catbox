@@ -435,9 +435,9 @@ function print(msg) {
 function sendCats(msg, amount) {
 	let reactions = ['😄', '😍', '😎']
 	let cats = ''
-	let hotness = (temp.odds + 0.5) * amount * 0.04
-	temp.deltaOdds = Math.min(Math.max(-0.5, randomFloat(-hotness, hotness)), 0.5)
-	temp.odds = Math.min(Math.max(0.1, (temp.odds + temp.deltaOdds)), 0.8)
+	let hotness = (temp.odds + 0.5) * amount * 0.03
+	temp.deltaOdds = Math.min(Math.max(-0.5, randomFloat(-hotness, hotness)), 0.5) + (temp.deltaOdds * 0.5)
+	temp.odds = Math.min(Math.max(0.1, (temp.odds + temp.deltaOdds - ((temp.odds - 0.4) * 0.5))), 0.75)
 	// let actualOdds = 1
 	let catStreaks = []
 
@@ -447,6 +447,7 @@ function sendCats(msg, amount) {
 			catStreaks[i]++
 			// actualOdds *= temp.odds
 		}
+		temp.deltaOdds = Math.min(Math.max(-0.5, randomFloat(-hotness, hotness)), 0.5) + (temp.deltaOdds * 0.5)		
 	}
 
 	let sum = catStreaks.reduce((a, b) => a + b, 0)
@@ -456,9 +457,10 @@ function sendCats(msg, amount) {
 		if (cats.length < 500) {
 			cats += youwhat
 		}
+		temp.deltaOdds = Math.min(Math.max(-0.5, randomFloat(-hotness, hotness)), 0.5) + (temp.deltaOdds * 0.5)
 	}
 
-	// print(`**odds:** ${temp.odds}\n**oddsrate:** ${temp.deltaOdds}\n**hotness:** ${hotness}\n**streak:** ${catStreak}\n**penalty:** ${amount}\n**profit:** ${profit}\n`)
+	// print(`**odds:** ${temp.odds}\n**oddsrate:** ${temp.deltaOdds}\n**hotness:** ${hotness}\n**streak:** ${max}\n**penalty:** ${amount}\n**profit:** ${profit}\n`)
 
 	changeBalance(msg.author.id, profit)
 	let newhs = saveHighscore(msg.author.id, max)

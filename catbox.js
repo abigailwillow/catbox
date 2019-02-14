@@ -1,6 +1,7 @@
 const discord 	= require('discord.js')
 const file		= require('fs')
 const http		= require('http')
+const https		= require('https')
 const bot 		= new discord.Client()
 const cfg 		= require('./cfg/config.json')
 const cmds 		= require('./cfg/commands.json')
@@ -336,6 +337,33 @@ command.linkCommand('ping', msg => {
 	.then(m => m.edit(m.content + ` and latency to catbox's server (${ipinfo.countryCode}) is ${m.createdTimestamp - msg.createdTimestamp}ms`))
 })
 
+command.linkCommand('meme', (msg, tag) => {
+	let data = ''
+	let args = JSON.stringify({Tag: tag, NSFW: msg.channel.nsfw})
+	let options = {
+		hostname: 'api.memes.fyi',
+		path: '/Videos/Random',
+		method: 'POST',
+		header: {
+			'Content-Type': 'application/x-www-form-urlencoded',
+			'Content-Length': Buffer.byteLength(args)
+		}
+	}
+	
+	let req = https.request(options, res => {
+		res.setEncoding('utf8')
+		res.on('data', x => data += x)
+		res.on('end', () => {
+			data = JSON.parse(data)
+			msg.channel.send(`Here's a random ${(tag != null) ? `${tag} ` : ''}meme by ${data.Data.Username}.\n${data.Data.Src}`)
+		})
+	})
+
+	req.on('error', err => msg.channel.send(txt.err_no_connection))
+	req.write(args)
+	req.end()
+})
+
 setInterval(() => {
 	let d = new Date()
 	if (d.getMinutes() === 0)
@@ -375,7 +403,7 @@ bot.on('ready', () => {
 		ipinfo = ''
 		res.on('data', x => ipinfo += x)
 		res.on('end', () => ipinfo = JSON.parse(ipinfo))
-	}).on('error', err => print('IP info could not be retrieved. Is server offline?'))
+	}).on('error', err => print(txt.err_no_connection))
 })
 
 bot.on('message', msg => {

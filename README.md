@@ -1,6 +1,6 @@
 # catbox
 
-[Add catbox to your server](https://discordapp.com/oauth2/authorize?client_id=538350337803812885&permissions=8&scope=bot)
+[Add catbox to your server](https://discordapp.com/oauth2/authorize?client_id=538350337803812885&permissions=8&scope=bot)  
 (catbox is currently not in a stable state, use at your own risk)
 
 ## Usage

@@ -60,7 +60,7 @@ command.linkCommand('about', msg => {
 			],
 			footer: 
 			{
-			  icon_url: cfg.about_img,
+			  icon_url: txt.ad_img,
 			  text: txt.ad_title
 			}
 		}

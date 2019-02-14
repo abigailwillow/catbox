@@ -333,12 +333,7 @@ command.linkCommand('eval', (msg, code) => {
 
 command.linkCommand('ping', msg => {
 	msg.channel.send(`Latency to Discord is ${Math.round(bot.ping)}ms`)
-	.then(m => {
-		m.edit(m.content + ` and latency to catbox's server (${ipinfo.countryCode}) is ${m.createdTimestamp - msg.createdTimestamp}ms`)
-		if (ipinfo.org !== '') {
-			m.edit(m.content + `\nHosted at ${ipinfo.org} in ${ipinfo.country}`)
-		}
-	})
+	.then(m => m.edit(m.content + ` and latency to catbox's server (${ipinfo.countryCode}) is ${m.createdTimestamp - msg.createdTimestamp}ms`))
 })
 
 setInterval(() => {

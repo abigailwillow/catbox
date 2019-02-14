@@ -126,5 +126,14 @@
 		"category": "General",
 		"admin": 0,
 		"enabled": true
+	},
+
+	"meme":
+	{
+		"tip": "Request a random meme from https://memes.fyi",
+		"args": ["string?"],
+		"category": "Entertainment",
+		"admin": 0,
+		"enabled": true
 	}
 }

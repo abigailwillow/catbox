@@ -339,7 +339,7 @@ command.linkCommand('ping', msg => {
 
 command.linkCommand('meme', (msg, tag) => {
 	let data = ''
-	let args = JSON.stringify({Tag: tag, NSFW: msg.channel.nsfw})
+	let args = JSON.stringify({Tag: tag})
 	let options = {
 		hostname: 'api.memes.fyi',
 		path: '/Videos/Random',
@@ -355,7 +355,12 @@ command.linkCommand('meme', (msg, tag) => {
 		res.on('data', x => data += x)
 		res.on('end', () => {
 			data = JSON.parse(data)
-			msg.channel.send(`Here's a random ${(tag != null) ? `${tag} ` : ''}meme by ${data.Data.Username}.\n${data.Data.Src}`)
+			if (data.Status === 200) {
+				let niceURL = `https://memes.fyi/v/${data.Data.Key}`
+				msg.channel.send(`Here's a random ${(tag != null) ? `${tag} ` : ''}meme by ${data.Data.Username}.\n${niceURL}`)
+			} else {
+				msg.channel.send(`${data.StatusMessage} (${data.Status})`)
+			}
 		})
 	})
 

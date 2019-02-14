@@ -1,5 +1,6 @@
 const discord 	= require('discord.js')
 const file		= require('fs')
+const http		= require('http')
 const bot 		= new discord.Client()
 const cfg 		= require('./cfg/config.json')
 const cmds 		= require('./cfg/commands.json')
@@ -9,6 +10,7 @@ var data		= require('./data/userdata.json')
 var temp		= require('./data/temp.json')
 var maintenance = false
 var betRound	= { roundTime: 30, roundInterval: 5, inProgress: false, total: 0, players: {} }
+var ipinfo		= 'http://ip-api.com/json/?fields=17411'
 
 command.init(bot, cmds)
 
@@ -329,6 +331,16 @@ command.linkCommand('eval', (msg, code) => {
 	}
 })
 
+command.linkCommand('ping', msg => {
+	msg.channel.send(`Latency to Discord is ${Math.round(bot.ping)}ms`)
+	.then(m => {
+		m.edit(m.content + ` and latency to catbox's server (${ipinfo.countryCode}) is ${m.createdTimestamp - msg.createdTimestamp}ms`)
+		if (ipinfo.org !== '') {
+			m.edit(m.content + `\nHosted at ${ipinfo.org} in ${ipinfo.country}`)
+		}
+	})
+})
+
 setInterval(() => {
 	let d = new Date()
 	if (d.getMinutes() === 0)
@@ -363,6 +375,12 @@ bot.on('ready', () => {
 			type: cfg.activityType.toUpperCase()
 		}
 	})
+
+	http.get(ipinfo, res => {
+		ipinfo = ''
+		res.on('data', x => ipinfo += x)
+		res.on('end', () => ipinfo = JSON.parse(ipinfo))
+	}).on('error', err => print('IP info could not be retrieved. Is server offline?'))
 })
 
 bot.on('message', msg => {

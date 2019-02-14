@@ -117,5 +117,14 @@
 		"category": "Debug",
 		"admin": 2,
 		"enabled": true
+	},
+
+	"ping":
+	{
+		"tip": "Check catbox's current latency.",
+		"args": [],
+		"category": "General",
+		"admin": 0,
+		"enabled": true
 	}
 }

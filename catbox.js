@@ -334,12 +334,14 @@ command.linkCommand('eval', (msg, code) => {
 
 command.linkCommand('ping', msg => {
 	msg.channel.send(`Latency to Discord is ${Math.round(bot.ping)}ms`)
-	.then(m => m.edit(m.content + ` and latency to catbox's server (${ipinfo.countryCode}) is ${m.createdTimestamp - msg.createdTimestamp}ms`))
+	.then(m => m.edit(m.content + `, latency to catbox's server (${ipinfo.countryCode}) is ${m.createdTimestamp - msg.createdTimestamp}ms`))
 })
 
 command.linkCommand('meme', (msg, tag) => {
+	// /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi
+	msg.channel.startTyping()
 	let data = ''
-	let args = JSON.stringify({Tag: tag})
+	let args = JSON.stringify({Tag: (tag == null) ? 'short' : tag})
 	let options = {
 		hostname: 'api.memes.fyi',
 		path: '/Videos/Random',
@@ -367,6 +369,7 @@ command.linkCommand('meme', (msg, tag) => {
 	req.on('error', err => msg.channel.send(txt.err_no_connection))
 	req.write(args)
 	req.end()
+	msg.channel.stopTyping()
 })
 
 setInterval(() => {

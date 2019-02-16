@@ -7,11 +7,12 @@ const cfg 		= require('./cfg/config.json')
 const cmds 		= require('./cfg/commands.json')
 const txt		= require('./res/strings.json')
 const command 	= require('./lib/commandhandler.js')
-var data		= require('./data/userdata.json')
-var temp		= require('./data/temp.json')
-var maintenance = false
-var betRound	= { roundTime: 30, roundInterval: 5, inProgress: false, total: 0, players: {} }
-var ipinfo		= 'http://ip-api.com/json/?fields=17411'
+let data		= require('./data/userdata.json')
+let temp		= require('./data/temp.json')
+let maintenance = false
+let betRound	= { roundTime: 30, roundInterval: 5, inProgress: false, total: 0, players: {} }
+let ipinfo		= 'http://ip-api.com/json/?fields=17411'
+let snipeArray 	= {}
 
 command.init(bot, cmds)
 
@@ -258,7 +259,7 @@ command.linkCommand('bet', (msg, amount) => {
 		betRound.startTime = new Date().getTime()
 		msg.channel.send(`**${user.username}** just started a betting round with ${amount.toLocaleString()} ${pluralize('cat', amount)}! You have ${betRound.roundTime} seconds to join in!`)
 		msg.channel.send(generateRoundEmbed()).then(msg => roundMsg = msg)
-		var IID = setInterval(() => { roundMsg.edit('', generateRoundEmbed()) }, betRound.roundInterval * 1000)
+		let IID = setInterval(() => { roundMsg.edit('', generateRoundEmbed()) }, betRound.roundInterval * 1000)
 		setTimeout(() => {
 			clearInterval(IID)
 			roundMsg.edit('', generateRoundEmbed())
@@ -372,6 +373,46 @@ command.linkCommand('meme', (msg, tag) => {
 	msg.channel.stopTyping()
 })
 
+command.linkCommand('snipe', (msg, option) => {
+	let curSnipeArray = []
+	if (snipeArray.hasOwnProperty(msg.guild.id)) {
+		if (option === 'all') {
+			curSnipeArray = snipeArray[msg.guild.id]
+		} else if (option === 'clear') {
+			if (cfg.operators.includes(msg.author.id)) {
+				snipeArray[msg.guild.id] = []
+				msg.channel.send('Snipe cache was cleared.')
+			} else {
+				msg.channel.send(txt.err_no_operator)
+			}
+			return
+		} else {
+			for (let i = 0; i < snipeArray[msg.guild.id].length; i++) {
+				if (snipeArray[msg.guild.id][i].channel.id === msg.channel.id) {
+					curSnipeArray.push(snipeArray[msg.guild.id][i])
+				}
+			}
+		}
+	}
+
+	if (curSnipeArray.length > 0) {
+		let embed = new discord.RichEmbed()
+		.setColor(cfg.embedcolor)
+		.setAuthor('SNIPED! Here\'s a list of recently deleted messages.')
+		.setTimestamp()
+		curSnipeArray.forEach(m => {
+			if (m != null) {
+				embed.addField(`(${m.createdAt.toString().substr(16, 8)}) ${m.member.displayName} in #${m.channel.name}`, 
+				`${m.content}${(m.attachments.size > 0) ? `Attachment: ${m.attachments[0].url}` : ''}`)
+			}
+		})
+
+		msg.channel.send(embed)
+	} else {
+		msg.channel.send("Whoops, I missed that.")
+	}
+})
+
 setInterval(() => {
 	let d = new Date()
 	if (d.getMinutes() === 0)
@@ -390,7 +431,7 @@ setInterval(() => {
 }, 60000)
 
 const youwhat = '<:youwhat:534811127461445643>'
-var cooldowns = {}
+let cooldowns = {}
 temp.bots = false
 temp.odds = 0.5
 temp.deltaOdds = 0
@@ -476,8 +517,20 @@ bot.on('message', msg => {
 	}
 })
 
+bot.on('messageDelete', msg => {
+	if (!snipeArray.hasOwnProperty(msg.guild.id)) {
+		snipeArray[msg.guild.id] = []
+	}
+
+	if (snipeArray[msg.guild.id].length > 5) {
+		snipeArray[msg.guild.id].pop()
+	}
+
+	snipeArray[msg.guild.id].push(msg)
+})
+
 function print(msg) {
-	var time = new Date().toISOString().substr(11, 8)
+	let time = new Date().toISOString().substr(11, 8)
     console.log(`(${time}) ${msg}`)
 }
 
@@ -507,7 +560,7 @@ function sendCats(msg, amount) {
 		}
 	}
 
-	print(`**odds:** ${temp.odds}\n**oddsrate:** ${temp.deltaOdds}\n**hotness:** ${hotness}\n**streak:** ${max}\n**penalty:** ${amount}\n**profit:** ${profit}\n`)
+	// print(`**odds:** ${temp.odds}\n**oddsrate:** ${temp.deltaOdds}\n**hotness:** ${hotness}\n**streak:** ${max}\n**penalty:** ${amount}\n**profit:** ${profit}\n`)
 
 	changeBalance(msg.author.id, profit)
 	let newhs = saveHighscore(msg.author.id, max)
@@ -571,8 +624,7 @@ function getChannel(guild, identifier) {
 }
 
 function saveHighscore(userID, streak) {
-	var filename = './data/userdata.json'
-	data = require(filename)
+	data = require('./data/userdata.json')
 
 	let user = data.find(x => x.id === userID)
 	if (user == null) {
@@ -587,8 +639,7 @@ function saveHighscore(userID, streak) {
 }
 
 function addUser(userID, balance, streak) {
-	var filename = './data/userdata.json'
-	data = require(filename)
+	data = require('./data/userdata.json')
 	
 	if (data.find(x => x.id === userID) == null) {
 		data.push({
@@ -606,8 +657,7 @@ function saveData() {
 }
 
 function changeBalance(userID, amount, callback) {
-	var filename = './data/userdata.json'
-	data = require(filename)
+	data = require('./data/userdata.json')
 
 	let user = data.find(x => x.id === userID)
 

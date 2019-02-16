@@ -130,10 +130,19 @@
 
 	"meme":
 	{
-		"tip": "Request a random meme from https://memes.fyi",
+		"tip": "Request a random meme from https://memes.fyi.",
 		"args": ["string?"],
 		"category": "Entertainment",
 		"admin": 0,
+		"enabled": true
+	},
+
+	"snipe":
+	{
+		"tip": "Snipe recently deleted messages.",
+		"args": ["string?"],
+		"category": "Admin",
+		"admin": 1,
 		"enabled": true
 	}
 }

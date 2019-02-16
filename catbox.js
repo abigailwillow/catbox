@@ -11,7 +11,7 @@ let data		= require('./data/userdata.json')
 let temp		= require('./data/temp.json')
 let maintenance = false
 let betRound	= { roundTime: 30, roundInterval: 5, inProgress: false, total: 0, players: {} }
-let ipinfo		= 'http://ip-api.com/json/?fields=17411'
+let serverInfo	= 'http://ip-api.com/json/?fields=17411'
 let snipeArray 	= {}
 
 command.init(bot, cmds)
@@ -293,7 +293,7 @@ command.linkCommand('config', (msg, key, value) => {
 			case 'channel':
 			temp = require('./data/temp.json')
 				if (value === null) { 
-					let list = 'List of current cat channels: '
+					let list = 'List of current forbidden channels: '
 					if (temp.channels.length < 1) {
 						list += '\`none\`'
 					} else {
@@ -309,10 +309,10 @@ command.linkCommand('config', (msg, key, value) => {
 					} else {
 						if (temp.channels.includes(channel.id)) {
 							temp.channels.splice(temp.channels.indexOf(channel.id), 1)
-							msg.channel.send(`\`${channel.name}\` was removed from the list of cat channels.`)
+							msg.channel.send(`\`${channel.name}\` was removed from the list of forbidden channels.`)
 						} else {
 							temp.channels.push(channel.id)
-							msg.channel.send(`\`${channel.name}\` was added to the list of cat channels.`)
+							msg.channel.send(`\`${channel.name}\` was added to the list of forbidden channels.`)
 						}
 					}
 				}
@@ -335,7 +335,7 @@ command.linkCommand('eval', (msg, code) => {
 
 command.linkCommand('ping', msg => {
 	msg.channel.send(`Latency to Discord is ${Math.round(bot.ping)}ms`)
-	.then(m => m.edit(m.content + `, latency to catbox's server (${ipinfo.countryCode}) is ${m.createdTimestamp - msg.createdTimestamp}ms`))
+	.then(m => m.edit(m.content + `, latency to catbox's server (${serverInfo.countryCode}) is ${m.createdTimestamp - msg.createdTimestamp}ms`))
 })
 
 command.linkCommand('meme', (msg, tag) => {
@@ -430,7 +430,6 @@ setInterval(() => {
 	}
 }, 60000)
 
-const youwhat = '<:youwhat:534811127461445643>'
 let cooldowns = {}
 temp.bots = false
 temp.odds = 0.5
@@ -448,10 +447,10 @@ bot.on('ready', () => {
 		}
 	})
 
-	http.get(ipinfo, res => {
-		ipinfo = ''
-		res.on('data', x => ipinfo += x)
-		res.on('end', () => ipinfo = JSON.parse(ipinfo))
+	http.get(serverInfo, res => {
+		serverInfo = ''
+		res.on('data', x => serverInfo += x)
+		res.on('end', () => serverInfo = JSON.parse(serverInfo))
 	}).on('error', err => print(txt.err_no_connection))
 })
 
@@ -461,7 +460,7 @@ bot.on('message', msg => {
 	if ((msg.author.bot && !temp.bots) ||
 		(maintenance && msg.content !== `${cfg.prefix}maintenance false`)) { return }
 
-	if (temp.channels !== undefined) { if (!temp.channels.includes(msg.channel.id)) { return } }
+	if (temp.channels !== undefined) { if (temp.channels.includes(msg.channel.id)) { return } }
 	
 	if (temp.users.hasOwnProperty(msg.author.id)) { 
 		if (temp.users[msg.author.id] < 5) {
@@ -472,15 +471,6 @@ bot.on('message', msg => {
 	}
 	file.writeFile('./data/temp.json', JSON.stringify(temp, null, 4), () => {})
 	
-	if (msg.content.includes(youwhat) && msg.content.substring(0, cfg.prefix.length) !== cfg.prefix) { 
-		let count = msg.content.split(youwhat).length - 1
-		if (getBalance(msg.author.id) > count) {
-			sendCats(msg, count)
-		} else { 
-			msg.channel.send(txt.err_no_cats) 
-		}
-	}
-
 	// Return if message is either from a bot or doesn't start with command prefix. Keep non-commands above this line.
 	if (msg.content.substring(0, cfg.prefix.length) !== cfg.prefix) { return }
 
@@ -534,47 +524,6 @@ function print(msg) {
     console.log(`(${time}) ${msg}`)
 }
 
-function sendCats(msg, amount) {
-	let reactions = ['😄', '😍', '😎']
-	let cats = ''
-	let hotness = (temp.odds + 0.5) * amount * 0.03
-	recalculateOdds(hotness, amount)
-	// let actualOdds = 1
-	let catStreaks = []
-
-	for (let i = 0; i < amount; i++) {
-		catStreaks[i] = 0
-		while (Math.random() < temp.odds) {
-			catStreaks[i]++
-			// actualOdds *= temp.odds
-		}
-		recalculateOdds(hotness, amount)
-	}
-
-	let sum = catStreaks.reduce((a, b) => a + b, 0)
-	let profit = sum - amount
-	let max = Math.max(...catStreaks)
-	for (let i = 0; i < profit; i++) {
-		if (cats.length < 500) {
-			cats += youwhat
-		}
-	}
-
-	// print(`**odds:** ${temp.odds}\n**oddsrate:** ${temp.deltaOdds}\n**hotness:** ${hotness}\n**streak:** ${max}\n**penalty:** ${amount}\n**profit:** ${profit}\n`)
-
-	changeBalance(msg.author.id, profit)
-	let newhs = saveHighscore(msg.author.id, max)
-	msg.channel.send(`**${msg.author.username}** entered ${amount} ${pluralize('cat', amount)} and earned back ${sum} ${pluralize('cat', sum)} ` + 
-	`**(${Math.abs(profit)} ${pluralize('cat', profit)} ${(profit >= 0) ? 'profit': 'loss'})** ` +
-	`${(profit < 0) ? '😤' : (profit === 0) ? '😅' : reactions[randomInt(0, reactions.length - 1)]}` + 
-	`${(newhs) ? `\n*New personal best catstreak: ${max} ${pluralize('cat', max)}!*` : ''}\n${cats}`)
-}
-
-function recalculateOdds(hotness, amount) {
-	temp.deltaOdds = Math.min(Math.max(-0.5, randomFloat(-hotness, hotness)), 0.5) + (temp.deltaOdds * 0.5)
-	temp.odds = Math.min(Math.max(0.1, (temp.odds + temp.deltaOdds - ((amount * 0.01 + temp.odds - 0.5) * 0.5))), 0.75)
-}
-
 function generateRoundEmbed() {
 	let pList = ''
 	let embed = new discord.RichEmbed()
@@ -619,8 +568,7 @@ function getMember(guild, identifier) {
 
 function getChannel(guild, identifier) {
 	identifier = identifier.toLowerCase()
-	let channel = guild.channels.find(x => x.id === identifier || x.name === identifier)
-	return channel
+	return guild.channels.find(x => x.type === 'text' && (x.id === identifier || x.name.toLowerCase().includes(identifier)))
 }
 
 function saveHighscore(userID, streak) {

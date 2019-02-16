@@ -12,6 +12,7 @@ let temp		= require('./data/temp.json')
 let maintenance = false
 let betRound	= { roundTime: 30, roundInterval: 5, inProgress: false, total: 0, players: {} }
 let serverInfo	= 'http://ip-api.com/json/?fields=17411'
+let relay		= '546410870146727949'
 let snipeArray 	= {}
 
 command.init(bot, cmds)
@@ -403,7 +404,7 @@ command.linkCommand('snipe', (msg, option) => {
 		curSnipeArray.forEach(m => {
 			if (m != null) {
 				embed.addField(`(${m.createdAt.toString().substr(16, 8)}) ${m.member.displayName} in #${m.channel.name}`, 
-				`${m.content}${(m.attachments.size > 0) ? `\nAttachment: ${m.attachments.array()[0].url}` : ''}`)
+				`${m.content}${(m.attachmentURL != null) ? `\n**Attachment:** ${m.attachmentURL}` : ''}`)
 			}
 		})
 
@@ -452,10 +453,16 @@ bot.on('ready', () => {
 		res.on('data', x => serverInfo += x)
 		res.on('end', () => serverInfo = JSON.parse(serverInfo))
 	}).on('error', err => print(txt.err_no_connection))
+
+	relay = bot.channels.get(relay)
 })
 
 bot.on('message', msg => {
 	msg.content = msg.cleanContent
+
+	if (msg.attachments.size > 0) {
+		relay.send('', {files: [msg.attachments.array()[0].url]}).then(m => msg.attachmentURL = m.attachments.array()[0].url)
+	}
 
 	if ((msg.author.bot && !temp.bots) ||
 		(maintenance && msg.content !== `${cfg.prefix}maintenance false`)) { return }

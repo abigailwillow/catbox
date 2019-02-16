@@ -403,7 +403,7 @@ command.linkCommand('snipe', (msg, option) => {
 		curSnipeArray.forEach(m => {
 			if (m != null) {
 				embed.addField(`(${m.createdAt.toString().substr(16, 8)}) ${m.member.displayName} in #${m.channel.name}`, 
-				`${m.content}${(m.attachments.size > 0) ? `Attachment: ${m.attachments[0].url}` : ''}`)
+				`${m.content}${(m.attachments.size > 0) ? `Attachment: ${m.attachments.array()[0].url}` : ''}`)
 			}
 		})
 

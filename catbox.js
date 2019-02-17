@@ -340,37 +340,74 @@ command.linkCommand('ping', msg => {
 })
 
 command.linkCommand('meme', (msg, tag) => {
-	// /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi
-	msg.channel.startTyping()
+	let id = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi.exec(tag)
 	let data = ''
-	let args = JSON.stringify({Tag: (tag == null) ? 'short' : tag})
-	let options = {
-		hostname: 'api.memes.fyi',
-		path: '/Videos/Random',
-		method: 'POST',
-		header: {
-			'Content-Type': 'application/x-www-form-urlencoded',
-			'Content-Length': Buffer.byteLength(args)
-		}
-	}
-	
-	let req = https.request(options, res => {
-		res.setEncoding('utf8')
-		res.on('data', x => data += x)
-		res.on('end', () => {
-			data = JSON.parse(data)
-			if (data.Status === 200) {
-				let niceURL = `https://memes.fyi/v/${data.Data.Key}`
-				msg.channel.send(`Here's a random ${(tag != null) ? `${tag} ` : ''}meme by ${data.Data.Username}.\n${niceURL}`)
-			} else {
-				msg.channel.send(`${data.StatusMessage} (${data.Status})`)
+	msg.channel.startTyping()
+	if (id == null) {
+		let args = JSON.stringify({Tag: (tag == null) ? 'short' : tag})
+		let options = {
+			hostname: 'api.memes.fyi',
+			path: '/Videos/Random',
+			method: 'POST',
+			header: {
+				'Content-Type': 'application/x-www-form-urlencoded',
+				'Content-Length': Buffer.byteLength(args)
 			}
+		}
+		
+		let req = https.request(options, res => {
+			res.setEncoding('utf8')
+			res.on('data', x => data += x)
+			res.on('end', () => {
+				data = JSON.parse(data)
+				if (data.Status === 200) {
+					let niceURL = `https://memes.fyi/v/${data.Data.Key}`
+					msg.channel.send(`Here's a random ${(tag != null) ? `${tag} ` : ''}meme by ${data.Data.Username}.\n${niceURL}`)
+				} else {
+					msg.channel.send(`${data.StatusMessage} (${data.Status})`)
+				}
+			})
 		})
-	})
 
-	req.on('error', err => msg.channel.send(txt.err_no_connection))
-	req.write(args)
-	req.end()
+		req.on('error', err => msg.channel.send(txt.err_no_connection))
+		req.write(args)
+		req.end()
+	} else {
+		https.get(`https://api.memes.fyi/Video/${id}`, res => {
+			res.on('data', x => data += x)
+			res.on('end', () => {
+				data = JSON.parse(data)
+				if (data.Status === 200) {
+					let tags = ''
+					for (let i = 0; i < data.Data.Tags.length - 1; i++) {
+						const tag = data.Data.Tags[i].Tag;
+						tags += `${tag}, `
+					} tags += data.Data.Tags[data.Data.Tags.length - 1].Tag
+					let embed = new discord.RichEmbed()
+					.setAuthor(`${data.Data.Title} ${(data.Data.NSFW) ? '(NSFW)' : ''}`, null, `https://memes.fyi/v/${data.Data.Key}`)
+					// .setURL()
+					.setColor(cfg.embedcolor)
+					.setImage(data.Data.Thumbnail)
+					.addField('Author', data.Data.Username, true)
+					.addField('Tags', tags, true)
+					.addField('Duration', `${('0' + Math.floor(data.Data.Duration / 60)).slice(-2)}:${('0' + data.Data.Duration % 60).slice(-2)}`, true)
+					.addField('Upload Date', data.Data.DateAdded, true)
+					.setFooter(`Viewed ${data.Data.Views} ${pluralize('time', data.Data.Views)}` +
+					`${(data.Data.DateApproved == null) ? ' | Not yet approved' : ''}`)
+
+					if (data.Data.Source !== '') {
+						 embed.addField('Source', data.Data.Source)
+					}
+
+					embed.addBlankField(false)
+		
+					msg.channel.send(embed)
+				} else {
+					msg.channel.send(`${data.StatusMessage} (${data.Status})`)
+				}
+			})
+		}).on('error', err => msg.channel.send(txt.err_no_connection))
+	}
 	msg.channel.stopTyping()
 })
 

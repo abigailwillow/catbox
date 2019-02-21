@@ -385,7 +385,6 @@ command.linkCommand('meme', (msg, tag) => {
 					} tags += data.Data.Tags[data.Data.Tags.length - 1].Tag
 					let embed = new discord.RichEmbed()
 					.setAuthor(`${data.Data.Title} ${(data.Data.NSFW) ? '(NSFW)' : ''}`, null, `https://memes.fyi/v/${data.Data.Key}`)
-					// .setURL()
 					.setColor(cfg.embedcolor)
 					.setImage(data.Data.Thumbnail)
 					.addField('Author', data.Data.Username, true)

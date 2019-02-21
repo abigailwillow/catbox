@@ -17,8 +17,8 @@
 Thanks to everyone who helped me with this project, especially
 
 - [KrypteK](https://github.com/KrispyteK) for coding several major features.
-- [Mori](https://github.com/SamuelMoriarty) for reading over my code whenever I get frustrated.
-- [Vioxtar](https://github.com/Vioxtar) for testing and suggesting a lot.
-- [Sikerow](https://github.com/Sikerow) for being way too addicted to this.
-- Octo and Classic for help with design.
-- Kieran for cats and memes.
+- [Mori](https://github.com/SamuelMoriarty) for checking my code whenever I get frustrated.
+- [Vioxtar](https://github.com/Vioxtar) for testing and suggesting many features.
+- [Sikerow](https://github.com/Sikerow) for being overly addicted to playing with catbox.
+- [Octo](https://github.com/OctothorpeObelus) and [Classic](https://github.com/BartNixon) for help with designing.
+- [Kieran](https://github.com/andyz1) for cats and memes.

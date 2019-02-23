@@ -439,8 +439,8 @@ command.linkCommand('snipe', (msg, option) => {
 		.setTimestamp()
 		curSnipeArray.forEach(m => {
 			if (m != null) {
-				embed.addField(`(${m.createdAt.toString().substr(16, 8)}) ${m.member.displayName} in #${m.channel.name}`, 
-				`${m.content}${(m.attachmentURL != null) ? `\n**Attachment:** ${m.attachmentURL}` : ''}`)
+				embed.addField(`(${m.createdAt.toString().substr(16, 8)}) ${m.member.displayName} in #${m.channel.name}`,
+				`${m.content}${(m.attachments.size > 0) ? `\n**Attachment:** ${m.attachments.array()[0].proxyURL}` : ''}\n\`ID: ${m.id}\``)
 			}
 		})
 
@@ -449,6 +449,8 @@ command.linkCommand('snipe', (msg, option) => {
 		msg.channel.send("Whoops, I missed that.")
 	}
 })
+
+// bot.on('messageReactionAdd', r => r.message.channel.send(`\`${r.emoji.name}\``))
 
 setInterval(() => {
 	let d = new Date()
@@ -495,10 +497,6 @@ bot.on('ready', () => {
 
 bot.on('message', msg => {
 	msg.content = msg.cleanContent
-
-	if (msg.attachments.size > 0) {
-		relay.send('', {files: [msg.attachments.array()[0].url]}).then(m => msg.attachmentURL = m.attachments.array()[0].url)
-	}
 
 	if ((msg.author.bot && !temp.bots) ||
 		(maintenance && msg.content !== `${cfg.prefix}maintenance false`)) { return }

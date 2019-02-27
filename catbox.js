@@ -440,7 +440,8 @@ command.linkCommand('snipe', (msg, option) => {
 		curSnipeArray.forEach(m => {
 			if (m != null) {
 				embed.addField(`(${m.createdAt.toString().substr(16, 8)}) ${m.member.displayName} in #${m.channel.name}`,
-				`${m.content}${(m.attachments.size > 0) ? `\n**Attachment:** ${m.attachments.array()[0].proxyURL}` : ''}\n\`ID: ${m.id}\``)
+				`${m.content}${m.edits.length > 1 ? ` \`(edited)\`\n**Original message:**\n${m.edits[m.edits.length - 1].content}`: ''}`
+				+`${m.attachments.size > 0 ? `\n**Attachment:** ${m.attachments.array()[0].proxyURL}` : ''}\n\`ID: ${m.id}\``)
 			}
 		})
 

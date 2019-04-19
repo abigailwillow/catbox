@@ -144,5 +144,14 @@
 		"category": "Admin",
 		"admin": 1,
 		"enabled": true
+	},
+
+	"joindate":
+	{
+		"tip": "Check a user's join date.",
+		"args": ["string"],
+		"category": "General",
+		"admin": 0,
+		"enabled": true
 	}
 }

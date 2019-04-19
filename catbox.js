@@ -7,6 +7,7 @@ const cfg 		= require('./cfg/config.json')
 const cmds 		= require('./cfg/commands.json')
 const txt		= require('./res/strings.json')
 const command 	= require('./lib/commandhandler.js')
+let steamedhams = require('./res/steamedhams.json')
 let data		= require('./data/userdata.json')
 let temp		= require('./data/temp.json')
 let maintenance = false
@@ -451,7 +452,15 @@ command.linkCommand('snipe', (msg, option) => {
 	}
 })
 
-// bot.on('messageReactionAdd', r => r.message.channel.send(`\`${r.emoji.name}\``))
+command.linkCommand('joindate', (msg, user) => {
+	let member = getMember(msg.guild, user)
+
+	if (member != null) {
+		msg.channel.send(`**${member.displayName}** joined on \`${member.joinedAt.toISOString().substring(0, 10)}\``)
+	} else {
+		msg.channel.send(txt.err_no_user)
+	}
+})
 
 setInterval(() => {
 	let d = new Date()
@@ -490,7 +499,14 @@ bot.on('ready', () => {
 	http.get(serverInfo, res => {
 		serverInfo = ''
 		res.on('data', x => serverInfo += x)
-		res.on('end', () => serverInfo = JSON.parse(serverInfo))
+		res.on('end', () => {
+			try {
+				serverInfo = JSON.parse(serverInfo)
+			} catch {
+				print("Server info could not be retrieved.")
+				serverInfo = {"country":"Unknown","countryCode":"??","org":"Server info could not be retrieved.","status":"success"}
+			}
+		})
 	}).on('error', err => print(txt.err_no_connection))
 
 	relay = bot.channels.get(relay)
@@ -498,6 +514,13 @@ bot.on('ready', () => {
 
 bot.on('message', msg => {
 	msg.content = msg.cleanContent
+
+	if (msg.mentions.members.has(bot.user.id)) {
+		let searchString = msg.content.slice(msg.mentions.members.get(bot.user.id).displayName.length + 2)
+		let index = steamedhams.processed.indexOf(searchString.replace(/[^a-z ]+/gi, '').replace(/\s+/g, ' ').toLowerCase())
+		index >= 0 && index != steamedhams.processed.length - 1 ? msg.channel.send(`*${steamedhams.raw[++index]}*`) : false
+		index < 0 && searchString == '' ? msg.channel.send(`*${steamedhams.raw[0]}*`) : false
+	}
 
 	if ((msg.author.bot && !temp.bots) ||
 		(maintenance && msg.content !== `${cfg.prefix}maintenance false`)) { return }
@@ -605,7 +628,7 @@ function generateGuessRoundEmbed() {
 
 function getMember(guild, identifier) {
 	identifier = identifier.toLowerCase()
-	return guild.members.find(x => x.id === identifier || x.user.username.toLowerCase() === identifier || ((x.nickname !== null) ? x.nickname.toLowerCase() === identifier : false))
+	return guild.members.find(x => x.id === identifier || x.user.username.toLowerCase().includes(identifier) || x.displayName.toLowerCase().includes(identifier))
 }
 
 function getChannel(guild, identifier) {

@@ -502,7 +502,7 @@ bot.on('ready', () => {
 		res.on('end', () => {
 			try {
 				serverInfo = JSON.parse(serverInfo)
-			} catch {
+			} catch(e) {
 				print("Server info could not be retrieved.")
 				serverInfo = {"country":"Unknown","countryCode":"??","org":"Server info could not be retrieved.","status":"success"}
 			}

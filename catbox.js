@@ -7,6 +7,7 @@ const cfg 		= require('./cfg/config.json')
 const cmds 		= require('./cfg/commands.json')
 const txt		= require('./res/strings.json')
 const command 	= require('./lib/commandhandler.js')
+const database	= require('./lib/databasehandler.js')
 let steamedhams = require('./res/steamedhams.json')
 let data		= require('./data/userdata.json')
 let temp		= require('./data/temp.json')
@@ -18,7 +19,7 @@ let snipeArray 	= {}
 
 command.init(bot, cmds)
 
-command.linkCommand('help', msg => {
+command.registerCommand('help', msg => {
 	let categories = []
 	Object.keys(cmds).forEach(cmd => {
 		if (!categories.includes(cmds[cmd].category) && cmds[cmd].admin !== 2) { categories.push(cmds[cmd].category) }
@@ -40,7 +41,7 @@ command.linkCommand('help', msg => {
 	msg.channel.send({embed})
 })
 
-command.linkCommand('about', msg => {
+command.registerCommand('about', msg => {
 	msg.channel.send({
 		embed: 
 		{
@@ -70,7 +71,7 @@ command.linkCommand('about', msg => {
 	})
 })
 
-command.linkCommand('send', (msg, channel, message) => {
+command.registerCommand('send', (msg, channel, message) => {
 	if (channel !== undefined) { 
 		channel.send(message) 
 	} else {
@@ -78,7 +79,7 @@ command.linkCommand('send', (msg, channel, message) => {
 	}
 })
 
-command.linkCommand('leaderboard', msg => {
+command.registerCommand('leaderboard', msg => {
     data = require('./data/userdata.json')
 
 	let validUsers = []; let richestStr = ''; let streakStr = ''
@@ -116,32 +117,32 @@ command.linkCommand('leaderboard', msg => {
 	msg.channel.send({embed})
 })
 
-command.linkCommand('spawn', (msg, member, amount) => {
+command.registerCommand('spawn', (msg, member, amount) => {
 	if (member instanceof Map) {
 		member.forEach(m => {
-			changeBalance(m.id, amount)
+			database.changeBalance(m.id, amount)
 		})
 
 		msg.channel.send(`**Everyone** has received ${amount.toLocaleString()} ${pluralize('cat', amount)}.`)
 	} else {
-		changeBalance(member.id, amount, _ => {
+		database.changeBalance(member.id, amount).then(() => {
 			msg.channel.send(`**${member.displayName}** was granted ${amount.toLocaleString()} ${pluralize('cat', amount)}.`)
 		})
 	}
 })
 
-command.linkCommand('give', (msg, member, amount) => {
+command.registerCommand('give', (msg, member, amount) => {
 	let user = msg.member
 	
-	if (getBalance(user.id) < amount) { msg.channel.send(txt.err_no_cats); return }
+	if (database.getBalance(user.id) < amount) { msg.channel.send(txt.err_no_cats); return }
 	if (amount <= 0) { msg.channel.send(txt.err_invalid_amt); return }
 
 	if (member instanceof Map) {
 		msg.channel.send(txt.err_no_everyone)
 	} else {
-		if (getBalance(user.id) >= amount) {
-			changeBalance(user.id, -amount)
-			changeBalance(member.id, amount, _ => {
+		if (database.getBalance(user.id) >= amount) {
+			database.changeBalance(user.id, -amount)
+			database.changeBalance(member.id, amount, _ => {
 				msg.channel.send(`**${user.displayName}** has given ${amount.toLocaleString()} ${pluralize('cat', amount)} to **${member.displayName}**.`)
 			})
 		} else {
@@ -150,14 +151,20 @@ command.linkCommand('give', (msg, member, amount) => {
 	}
 })
 
-command.linkCommand('balance', (msg, member) => {
+command.registerCommand('balance', (msg, member) => {
 	let user = member ? member.user : msg.author
 
-	let bal = getBalance(user.id)
-	msg.channel.send(`**${user.username}** has ${bal.toLocaleString()} ${pluralize('cat', bal)}`)
+	database.getUserBalance(user.id).then(bal => {
+		if (bal != null) {
+			msg.channel.send(`**${user.username}** has ${bal} ${pluralize('cat', bal)}`)
+		} else {
+			msg.channel.send(`**${user.username}** has 0 cats`)
+			database.addNewUser(user.id)
+		}
+	})
 })
 
-command.linkCommand('maintenance', (msg, bool) => {
+command.registerCommand('maintenance', (msg, bool) => {
 	if (bool)
 	{
 		bot.guilds.forEach(guild => {
@@ -177,7 +184,7 @@ command.linkCommand('maintenance', (msg, bool) => {
 	maintenance = bool
 })
 
-command.linkCommand('guess', (msg, guess) => {
+command.registerCommand('guess', (msg, guess) => {
 	let user = msg.author
 
 	if (temp.guessRound.num === false) {
@@ -190,15 +197,15 @@ command.linkCommand('guess', (msg, guess) => {
 	if (!guess) { 
 		msg.channel.send(generateGuessRoundEmbed()) 
 	} else {
-		if (getBalance(user.id) <= 0) { msg.channel.send(txt.err_no_cats); return }
+		if (database.getBalance(user.id) <= 0) { msg.channel.send(txt.err_no_cats); return }
 		if (temp.guessRound.guessed.includes(guess) || guess < 0 || guess > temp.guessRound.max) { msg.channel.send('Choose a different number.'); return }
-		changeBalance(user.id, -1)
+		database.changeBalance(user.id, -1)
 		temp.guessRound.guessed.push(guess)
 		temp.guessRound.total++
 
 		if (guess === temp.guessRound.num) {
 			msg.channel.send(`**${user.username}** won ${temp.guessRound.total} ${pluralize('cat', temp.guessRound.total)}! Winning number was ${temp.guessRound.num}.`)
-			changeBalance(user.id, temp.guessRound.total)
+			database.changeBalance(user.id, temp.guessRound.total)
 			temp.guessRound.num = false
 			temp.guessRound.guessed = []
 		} else {
@@ -210,19 +217,19 @@ command.linkCommand('guess', (msg, guess) => {
 	}
 })
 
-command.linkCommand('check', (msg, number) => {
+command.registerCommand('check', (msg, number) => {
 	let user = msg.author
 	let guessNumber = temp.guessRound.num
 
 	let cost = getGuessCheckCost()
 
-	if (cost > getBalance(user.id)) {
+	if (cost > database.getBalance(user.id)) {
 		msg.channel.send(txt.err_no_cats)
 		return
 	}
 	if (number < 0 || number > temp.guessRound.max) { msg.channel.send(`You chose an invalid number.`); return }
 
-	changeBalance(user.id, -cost)
+	database.changeBalance(user.id, -cost)
 
 	temp.guessRound.total += cost
 	if (guessNumber === number) {
@@ -241,11 +248,11 @@ command.linkCommand('check', (msg, number) => {
 	msg.channel.send(`**${user.username}** checked number ${number} and added ${cost} ${pluralize('cat', cost)} to the pool.`)
 })
 
-command.linkCommand('bet', (msg, amount) => {
+command.registerCommand('bet', (msg, amount) => {
 	let roundMsg = null; let user = msg.author
-	if (getBalance(user.id) < amount) { msg.channel.send(txt.err_no_cats); return }
+	if (database.getBalance(user.id) < amount) { msg.channel.send(txt.err_no_cats); return }
 	if (amount <= 0) { msg.channel.send(txt.err_invalid_amt); return }
-	changeBalance(user.id, -amount)
+	database.changeBalance(user.id, -amount)
 	betRound.total += amount
 	if (betRound.players.hasOwnProperty(user.id)) {
 		msg.channel.send(`**${user.username}** added ${amount.toLocaleString()} ${pluralize('cat', amount)}.`)
@@ -272,7 +279,7 @@ command.linkCommand('bet', (msg, amount) => {
 				if (total >= winNum && winner == undefined) { winner = ply }
 			})
 			msg.channel.send(`**${bot.users.get(winner).username}** won ${betRound.total.toLocaleString()} ${pluralize('cat', betRound.total)} with a ${((betRound.players[winner] / betRound.total) * 100).toFixed(2)}% chance!`)
-			changeBalance(winner, betRound.total)
+			database.changeBalance(winner, betRound.total)
 			betRound.inProgress = false; betRound.total = 0; betRound.players = {}
 		}, betRound.roundTime * 1000)
 	}
@@ -282,7 +289,7 @@ command.linkCommand('bet', (msg, amount) => {
 	}
 })
 
-command.linkCommand('config', (msg, key, value) => {
+command.registerCommand('config', (msg, key, value) => {
 	let keyList = ['channel']
 	if (key === 'list') {
 		let list = 'List of available config attributes: '
@@ -327,7 +334,7 @@ command.linkCommand('config', (msg, key, value) => {
 	}
 })
 
-command.linkCommand('eval', (msg, code) => {
+command.registerCommand('eval', (msg, code) => {
 	try {
 		eval(code)
 	} catch (err) {
@@ -335,12 +342,12 @@ command.linkCommand('eval', (msg, code) => {
 	}
 })
 
-command.linkCommand('ping', msg => {
+command.registerCommand('ping', msg => {
 	msg.channel.send(`Latency to Discord is ${Math.round(bot.ping)}ms`)
 	.then(m => m.edit(m.content + `, latency to catbox's server (${serverInfo.countryCode}) is ${m.createdTimestamp - msg.createdTimestamp}ms`))
 })
 
-command.linkCommand('meme', (msg, tag) => {
+command.registerCommand('meme', (msg, tag) => {
 	let id = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi.exec(tag)
 	let data = ''
 	msg.channel.startTyping()
@@ -411,7 +418,7 @@ command.linkCommand('meme', (msg, tag) => {
 	msg.channel.stopTyping()
 })
 
-command.linkCommand('snipe', (msg, option) => {
+command.registerCommand('snipe', (msg, option) => {
 	let curSnipeArray = []
 	if (snipeArray.hasOwnProperty(msg.guild.id)) {
 		if (option === 'all') {
@@ -452,7 +459,7 @@ command.linkCommand('snipe', (msg, option) => {
 	}
 })
 
-command.linkCommand('joindate', (msg, user) => {
+command.registerCommand('joindate', (msg, user) => {
 	let member = getMember(msg.guild, user)
 
 	if (member != null) {
@@ -469,7 +476,7 @@ setInterval(() => {
 		file.writeFile(`./data/backups/userdata-${d.toISOString().substr(0, 13)}.json`, JSON.stringify(data), () => {})
 		let total = 0
 		Object.keys(temp.users).forEach(u => {
-			changeBalance(u, temp.users[u])
+			database.changeBalance(u, temp.users[u])
 			total += temp.users[u]
 		})
 		temp.users = {}
@@ -546,7 +553,7 @@ bot.on('message', msg => {
 		cooldowns[msg.author.id] = Date.now() + cfg.cooldown 
 	}
 
-	let cmd = command.parseCommand(msg.content)
+	let cmd = command.parse(msg.content)
 
 	// If the we cannot find the command we'll try to find a command with that alias instead.
 	if (cmds[cmd.cmd] == null) {
@@ -634,64 +641,6 @@ function getMember(guild, identifier) {
 function getChannel(guild, identifier) {
 	identifier = identifier.toLowerCase()
 	return guild.channels.find(x => x.type === 'text' && (x.id === identifier || x.name.toLowerCase().includes(identifier)))
-}
-
-function saveHighscore(userID, streak) {
-	data = require('./data/userdata.json')
-
-	let user = data.find(x => x.id === userID)
-	if (user == null) {
-		addUser(userID, null, streak)
-		return true
-	} else {
-		let newhs = (user.streak < streak)
-		user.streak = (newhs) ? streak : user.streak
-		saveData()
-		return newhs
-	}
-}
-
-function addUser(userID, balance, streak) {
-	data = require('./data/userdata.json')
-	
-	if (data.find(x => x.id === userID) == null) {
-		data.push({
-			id: userID,
-			balance: (balance == null) ? 0 : balance,
-			streak: (streak == null) ? 0 : streak
-		})
-
-		saveData()
-	}
-}
-
-function saveData() {
-	file.writeFile('./data/userdata.json', JSON.stringify(data, null, 4), () => {})
-}
-
-function changeBalance(userID, amount, callback) {
-	data = require('./data/userdata.json')
-
-	let user = data.find(x => x.id === userID)
-
-	if (user !== undefined) {
-		user.balance += amount
-	} else {
-		addUser(userID, amount)
-	}
-
-	saveData()
-	
-	if (callback !== undefined) {
-		callback()
-	}
-}
-
-function getBalance(userID) {
-	data = require('./data/userdata.json')
-
-	let user = data.find(x => x.id === userID)
-	return (user == null) ? 0 : user.balance
 }
 
 function randomInt(min, max) {

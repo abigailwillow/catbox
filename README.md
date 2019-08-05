@@ -6,9 +6,9 @@
 ## I want to have my own catbox
 
 1. Make sure you have [NodeJS](https://nodejs.org/en/download/) installed.
-2. Open a command prompt in the root folder and run `npm i discord.js` and `npm i sqlite3`
-3. Change `config-example.json` to your needs and rename it to `config.json`.
-4. In that command prompt from earlier run `node catbox` and watch the magic happen.
+2. Open a terminal in the root folder and run `npm i`.
+3. Change values in `config-example.json` to your needs and rename it to `config.json`.
+4. In that terminal from earlier run `node catbox` and watch the magic happen.
 
 ## Check these awesome people out
 

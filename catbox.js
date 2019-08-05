@@ -154,7 +154,7 @@ command.registerCommand('give', (msg, member, amount) => {
 command.registerCommand('balance', (msg, member) => {
 	let user = member ? member.user : msg.author
 
-	database.getUserBalance(user.id).then(bal => {
+	database.getUser(user.id).then(bal => {
 		if (bal != null) {
 			msg.channel.send(`**${user.username}** has ${bal} ${pluralize('cat', bal)}`)
 		} else {

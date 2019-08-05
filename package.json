@@ -2,6 +2,7 @@
   "name": "catbox",
   "version": "1.0.0",
   "main": "catbox.js",
+  "private": true,
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Galaxyzd/catbox.git"

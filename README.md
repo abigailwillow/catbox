@@ -1,24 +1,22 @@
-# catbox
+# Catbox Information
 
 [Add catbox to your server](https://discordapp.com/oauth2/authorize?client_id=538350337803812885&permissions=8&scope=bot)  
-(catbox is currently not in a stable state, use at your own risk)
+**Note:** Catbox is currently not in a stable state. Data might get wiped or lost. Use at own risk.
 
-## Usage
+## I want to have my own catbox
 
 1. Make sure you have [NodeJS](https://nodejs.org/en/download/) installed.
-2. Open a command prompt in the root folder and run `npm install discord.js`
+2. Open a command prompt in the root folder and run `npm i discord.js` and `npm i sqlite3`
 3. Change `config-example.json` to your needs and rename it to `config.json`.
-4. In that command prompt from earlier write `node catbox` and watch the magic happen.
+4. In that command prompt from earlier run `node catbox` and watch the magic happen.
 
-**NOTE:** Data is currently borked, you should create a folder called `backups`, a file called `temp.json` and a file called `userdata.json` in `/data`. All should work after adding `{}` in temp and `[]` in userdata. If you can't figure it out feel free to contact me or whatever.
+## Check these awesome people out
 
-## Cat
-
-Thanks to everyone who helped me with this project, especially
+Thanks to everyone who helped me with this project
 
 - [KrypteK](https://github.com/KrispyteK) for coding several major features.
-- [Mori](https://github.com/SamuelMoriarty) for checking my code whenever I get frustrated.
+- [Mori](https://github.com/SamuelMoriarty) for checking my code whenever I got frustrated.
 - [Vioxtar](https://github.com/Vioxtar) for testing and suggesting many features.
-- [Sikerow](https://github.com/Sikerow) for being overly addicted to playing with catbox.
+- [Sikerow](https://github.com/Sikerow) for being morbidly addicted to playing with catbox.
 - [Octo](https://github.com/OctothorpeObelus) and [Classic](https://github.com/BartNixon) for help with designing.
-- [Kieran](https://github.com/andyz1) for cats and memes.
+- [Kieran](https://github.com/andyz1) for the cats and memes.

@@ -2,6 +2,7 @@ const discord 	= require('discord.js')
 const file		= require('fs')
 const http		= require('http')
 const https		= require('https')
+const cron		= require('node-cron')
 const bot 		= new discord.Client()
 const cfg 		= require('./cfg/config.json')
 const cmds 		= require('./cfg/commands.json')
@@ -19,6 +20,9 @@ let snipeArray 	= {}
 
 command.init(bot, cmds)
 
+/** 
+ * Register Commands
+ */
 command.registerCommand('help', msg => {
 	let categories = []
 	Object.keys(cmds).forEach(cmd => {
@@ -469,29 +473,29 @@ command.registerCommand('joindate', (msg, user) => {
 	}
 })
 
-setInterval(() => {
-	let d = new Date()
-	if (d.getMinutes() === 0)
-	{
-		file.writeFile(`./data/backups/userdata-${d.toISOString().substr(0, 13)}.json`, JSON.stringify(data), () => {})
-		let total = 0
-		Object.keys(temp.users).forEach(u => {
-			database.changeBalance(u, temp.users[u])
-			total += temp.users[u]
-		})
-		temp.users = {}
-		file.writeFile('./data/temp.json', JSON.stringify(temp, null, 4), () => {})
-		cooldowns = {}
-		print(`Backups were made and ${total} hourly cats given out.`)
-	}
-}, 60000)
+/** 
+ * Scheduled Tasks
+ */
+cron.schedule('0 * * * *', () => {
+	let date = new Date()
+	file.writeFile(`./data/backups/userdata-${date.getFullYear()}-${date.getMonth()}-${date.getDay()}_${date.getHours()}-${date.getMinutes()}.json`, JSON.stringify(data), () => {})
+	let total = 0
+	Object.keys(database.users).forEach(u => {
+		database.changeBalance(u, temp.users[u])
+		total += temp.users[u]
+	})
+	temp.users = {}
+	file.writeFile('./data/temp.json', JSON.stringify(temp, null, 4), () => {})
+	cooldowns = {}
+	print(`Backups were made and ${total} hourly cats given out.`)
+})
 
 let cooldowns = {}
 temp.bots = false
-temp.odds = 0.5
-temp.deltaOdds = 0
 
-// Events
+/** 
+ * Bot Events
+ */
 bot.on('ready', () => {
 	print(`Logged in as ${bot.user.tag}!`)
 	print(`Currently serving ${bot.guilds.size} servers and ${bot.users.size} users.\n`)
@@ -591,6 +595,9 @@ bot.on('messageDelete', msg => {
 	snipeArray[msg.guild.id].push(msg)
 })
 
+/** 
+ * Functions
+ */
 function print(msg) {
 	let time = new Date().toISOString().substr(11, 8)
     console.log(`(${time}) ${msg}`)

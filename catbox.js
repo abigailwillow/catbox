@@ -7,7 +7,6 @@ const cfg 		= require('./cfg/config.json')
 const cmds 		= require('./cfg/commands.json')
 const txt		= require('./res/strings.json')
 const command 	= require('./lib/commandhandler.js')
-let steamedhams = require('./res/steamedhams.json')
 let data		= require('./data/userdata.json')
 let temp		= require('./data/temp.json')
 let maintenance = false
@@ -514,13 +513,6 @@ bot.on('ready', () => {
 
 bot.on('message', msg => {
 	msg.content = msg.cleanContent
-
-	if (msg.mentions.members.has(bot.user.id)) {
-		let searchString = msg.content.slice(msg.mentions.members.get(bot.user.id).displayName.length + 2)
-		let index = steamedhams.processed.indexOf(searchString.replace(/[^a-z ]+/gi, '').replace(/\s+/g, ' ').toLowerCase())
-		index >= 0 && index != steamedhams.processed.length - 1 ? msg.channel.send(`*${steamedhams.raw[++index]}*`) : false
-		index < 0 && searchString == '' ? msg.channel.send(`*${steamedhams.raw[0]}*`) : false
-	}
 
 	if ((msg.author.bot && !temp.bots) ||
 		(maintenance && msg.content !== `${cfg.prefix}maintenance false`)) { return }

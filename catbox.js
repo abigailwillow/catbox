@@ -2,7 +2,6 @@ const discord 	= require('discord.js')
 const file		= require('fs')
 const http		= require('http')
 const https		= require('https')
-const cron		= require('node-cron')
 const bot 		= new discord.Client()
 const cfg 		= require('./cfg/config.json')
 const cmds 		= require('./cfg/commands.json')
@@ -454,25 +453,6 @@ command.registerCommand('joindate', (msg, user) => {
 	} else {
 		msg.channel.send(txt.err_no_user)
 	}
-})
-
-/** 
- * Scheduled Tasks
- */
-cron.schedule('0 * * * *', () => {
-	let date = new Date()
-	let dateFormat = `${date.getFullYear()}-${('0' + date.getMonth()).slice(-2)}-${('0' + date.getDate()).slice(-2)}-
-		${('0' + date.getHours()).slice(-2)}${('0' + date.getMinutes()).slice(-2)}`
-	file.writeFile(`./data/backups/userdata-${dateFormat}.json`, JSON.stringify(data), () => {})
-	let total = 0
-	Object.keys(database.users).forEach(u => {
-		database.changeBalance(u, temp.users[u])
-		total += temp.users[u]
-	})
-	temp.users = {}
-	file.writeFile('./data/temp.json', JSON.stringify(temp, null, 4), () => {})
-	cooldowns = {}
-	print(`Backups were made and ${total} hourly cats given out.`)
 })
 
 let cooldowns = {}

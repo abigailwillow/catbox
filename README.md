@@ -15,7 +15,7 @@
 Thanks to everyone who helped me with this project
 
 - [KrypteK](https://github.com/KrispyteK) for coding several major features.
-- [Mori](https://github.com/SamuelMoriarty) for checking my code whenever I got frustrated.
+- [Mori](https://github.com/ElusiveMori) for checking my code whenever I got frustrated.
 - [Vioxtar](https://github.com/Vioxtar) for testing and suggesting many features.
 - [Sikerow](https://github.com/Sikerow) for being morbidly addicted to playing with catbox.
 - [Octo](https://github.com/OctothorpeObelus) and [Classic](https://github.com/BartNixon) for help with designing.

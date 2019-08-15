@@ -84,41 +84,24 @@ command.registerCommand('send', (msg, channel, message) => {
 })
 
 command.registerCommand('leaderboard', msg => {
-    data = require('./data/userdata.json')
+	database.getRichestUsers(10, users => {
+		let richestUsers = users
+		let richestUsersString = ''
 
-	let validUsers = []; let richestStr = ''; let streakStr = ''
-	data.forEach(user => {
-		let m = getMember(msg.guild, user.id)
-		if (m !== undefined && m !== null) {
-			validUsers.push(user)
+		for (let i = 0; i < richestUsers.length; i++) {
+			let user = richestUsers[i]
+			let member = getMember(msg.guild, user.id)
+			richestUsersString += member ? `\`${('0' + (i + 1)).slice(-2)}.\` ${user.formattedBalance} ${pluralize('cat', user.balance)} - **${member.displayName}\n**` : ''
 		}
+	
+		let embed = new discord.RichEmbed()
+		.setAuthor('😻 Catbox Leaderboard')
+		.setColor(cfg.embedcolor)
+		.setTimestamp()
+		.addField('10 Richest Users', richestUsersString)
+	
+		msg.channel.send({embed})
 	})
-
-	let richest = validUsers.sort((a, b) => b.balance - a.balance)
-	richest = richest.slice(0, Math.min(richest.length, 10))
-
-	let streaks = validUsers.sort((a, b) => b.streak - a.streak)
-	streaks = streaks.slice(0, Math.min(streaks.length, 5))
-
-	for (let i = 0; i < richest.length; i++) {
-		let user = richest[i]
-		richestStr += `\`${('0' + (i + 1)).slice(-2)}.\` ${user.balance.toLocaleString()} ${pluralize('cat', user.balance)} - **${getMember(msg.guild, user.id).displayName}\n**`
-	}
-
-	for (let i = 0; i < streaks.length; i++) {
-		let user = streaks[i]
-		streakStr += `\`${('0' + (i + 1)).slice(-2)}.\` ${user.streak.toLocaleString()} ${pluralize('cat', user.streak)} - **${getMember(msg.guild, user.id).displayName}\n**`
-	}
-
-	let embed = new discord.RichEmbed()
-	.setAuthor('Catbox Leaderboard', 'https://cdn.discordapp.com/attachments/456889532227387405/538354324028260377/youwhat_hd.png')
-	.setColor(cfg.embedcolor)
-	.setTimestamp()
-	.addField('10 Richest Users', richestStr)
-	.addBlankField()
-	.addField('5 Highest Catstreaks', streakStr)
-
-	msg.channel.send({embed})
 })
 
 command.registerCommand('spawn', (msg, member, amount) => {
@@ -643,13 +626,21 @@ function generateGuessRoundEmbed() {
 }
 
 function getMember(guild, identifier) {
-	identifier = identifier.toLowerCase()
-	return guild.members.find(x => x.id === identifier || x.user.username.toLowerCase().includes(identifier) || x.displayName.toLowerCase().includes(identifier))
+	if (identifier instanceof discord.GuildMember) {
+		return identifier
+	} else {
+		identifier = identifier.toLowerCase()
+		return guild.members.find(x => x.id === identifier || x.user.username.toLowerCase().includes(identifier) || x.displayName.toLowerCase().includes(identifier))
+	}
 }
 
 function getChannel(guild, identifier) {
-	identifier = identifier.toLowerCase()
-	return guild.channels.find(x => x.type === 'text' && (x.id === identifier || x.name.toLowerCase().includes(identifier)))
+	if (identifier instanceof discord.Channel) {
+		return identifier
+	} else {
+		identifier = identifier.toLowerCase()
+		return guild.channels.find(x => x.type === 'text' && (x.id === identifier || x.name.toLowerCase().includes(identifier)))
+	}
 }
 
 function randomInt(min, max) {

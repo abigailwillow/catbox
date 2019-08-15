@@ -478,7 +478,9 @@ command.registerCommand('joindate', (msg, user) => {
  */
 cron.schedule('0 * * * *', () => {
 	let date = new Date()
-	file.writeFile(`./data/backups/userdata-${date.getFullYear()}-${date.getMonth()}-${date.getDay()}_${date.getHours()}-${date.getMinutes()}.json`, JSON.stringify(data), () => {})
+	let dateFormat = `${date.getFullYear()}-${('0' + date.getMonth()).slice(-2)}-${('0' + date.getDate()).slice(-2)}-
+		${('0' + date.getHours()).slice(-2)}${('0' + date.getMinutes()).slice(-2)}`
+	file.writeFile(`./data/backups/userdata-${dateFormat}.json`, JSON.stringify(data), () => {})
 	let total = 0
 	Object.keys(database.users).forEach(u => {
 		database.changeBalance(u, temp.users[u])

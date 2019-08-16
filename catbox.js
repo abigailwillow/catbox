@@ -61,34 +61,41 @@ command.registerCommand('send', (msg, channel, message) => {
 })
 
 command.registerCommand('leaderboard', (msg, amount) => {
-	database.getRichestUsers(Math.min(Math.max(5, amount || 10), 25), users => {
+	amount = Math.min(Math.max(5, amount || 10), 25)
+	msg.channel.startTyping()
+	database.getRichestUsers(amount, users => {
 		let richestUsers = ''
 
 		for (let i = 0; i < users.length; i++) {
 			let user = users[i]
-			let discordUser = getUser(user.id)
-			let userIsAuthor = discordUser && discordUser.id === msg.author.id
-			let username = `${userIsAuthor ? '>' : ''}${discordUser ? discordUser.tag : 'Unknown User'}${userIsAuthor ? '<' : ''}`
-			richestUsers += `\`${('0' + (i + 1)).slice(-2)}\` ${user.formattedBalance} ${pluralize('cat', user.balance)} - **${username}\n**`
+			bot.fetchUser(user.id).then(discordUser => {
+
+				let userIsAuthor = discordUser && discordUser.id === msg.author.id
+				let username = `${userIsAuthor ? '>' : ''}${discordUser ? discordUser.tag : 'Unknown User'}${userIsAuthor ? '<' : ''}`
+				richestUsers += `\`${('0' + (i + 1)).slice(-2)}\` ${user.formattedBalance} ${pluralize('cat', user.balance)} - **${username}\n**`
+
+				if (i === users.length - 1) {
+					let embed = new discord.RichEmbed()
+					.setAuthor('😻 Global Leaderboard')
+					.setColor(cfg.embedcolor)
+					.setTimestamp()
+					.addField(`${amount} Richest Users`, richestUsers)
+				
+					msg.channel.send({embed})
+					msg.channel.stopTyping()
+				}
+			}).catch(err => { throw err } )
 		}
-	
-		let embed = new discord.RichEmbed()
-		.setAuthor('😻 Global Leaderboard')
-		.setColor(cfg.embedcolor)
-		.setTimestamp()
-		.addField('10 Richest Users', richestUsers)
-	
-		msg.channel.send({embed})
 	})
 })
 
 command.registerCommand('spawn', (msg, member, amount) => {
 	if (member instanceof Map) {
-		member.forEach(m => database.getUser(m.id, user => user.changeBalance(amount)))
+		member.forEach(m => database.getUser(m.id, user => user.changeBalance(amount, true)))
 		msg.channel.send(`**All online users** were granted ${amount.toLocaleString()} ${pluralize('cat', amount)}.`)
 	} else {
 		database.getUser(member.id, user => {
-			user.changeBalance(amount)
+			user.changeBalance(amount, true)
 			msg.channel.send(`**${member.displayName}** was granted ${amount.toLocaleString()} ${pluralize('cat', amount)}.`)
 		})
 	}
@@ -96,9 +103,10 @@ command.registerCommand('spawn', (msg, member, amount) => {
 
 command.registerCommand('give', (msg, member, amount) => {
 	let user = msg.member
-	
+
 	if (database.getBalance(user.id) < amount) { msg.channel.send(txt.err_no_cats); return }
 	if (amount <= 0) { msg.channel.send(txt.err_invalid_amt); return }
+	if (member instanceof Map) { msg.channel.send(txt.err_no_everyone) }
 
 	if (member instanceof Map) {
 		msg.channel.send(txt.err_no_everyone)

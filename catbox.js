@@ -149,24 +149,16 @@ command.registerCommand('balance', (msg, member) => {
 	})
 })
 
-command.registerCommand('maintenance', (msg, bool) => {
-	if (bool)
-	{
-		bot.guilds.forEach(guild => {
-			guild.members.get(bot.user.id).setNickname(bot.user.username + ' (maintenance)')
-		})
-		msg.channel.send('Maintenance mode enabled.')
-		print('Maintenance mode enabled.')
-	}
-	else
-	{
-		bot.guilds.forEach(guild => {
-			guild.members.get(bot.user.id).setNickname(bot.user.username)
-		})
-		msg.channel.send('Maintenance mode disabled.')
-		print('Maintenance mode disabled.')
-	}
-	maintenance = bool
+command.registerCommand('maintenance', (msg, maintenanceMode) => {
+	bot.guilds.forEach(guild => {
+		guild.me.setNickname(`${bot.user.username} ${maintenanceMode ? '(maintenance)' : ''}`)
+	})
+
+	let response = `Maintenance mode ${maintenanceMode ? 'enabled' : 'disabled'}`
+	msg.channel.send(response)
+	print(response)
+
+	maintenance = maintenanceMode
 })
 
 command.registerCommand('guess', (msg, guess) => {
@@ -455,7 +447,6 @@ command.registerCommand('joindate', (msg, user) => {
 })
 
 let cooldowns = {}
-temp.bots = false
 
 /** 
  * Bot Events
@@ -488,56 +479,48 @@ bot.on('ready', () => {
 })
 
 bot.on('message', msg => {
-	msg.content = msg.cleanContent
+	database.getUser(msg.author.id, user => {
+		if (msg.author.bot || (maintenance && msg.cleanContent !== `${cfg.prefix}maintenance false`)) { return }
 
-	if ((msg.author.bot && !temp.bots) ||
-		(maintenance && msg.content !== `${cfg.prefix}maintenance false`)) { return }
+		if (temp.channels !== undefined) { if (temp.channels.includes(msg.channel.id)) { return } }
+		
+		user.activity = Math.min(user.activity + 1, 5)
+		
+		// Return if message is either from a bot or doesn't start with command prefix. Keep non-commands above this line.
+		if (msg.author.bot || msg.cleanContent.substring(0, cfg.prefix.length) !== cfg.prefix) { return }
 
-	if (temp.channels !== undefined) { if (temp.channels.includes(msg.channel.id)) { return } }
-	
-	if (temp.users.hasOwnProperty(msg.author.id)) { 
-		if (temp.users[msg.author.id] < 5) {
-			temp.users[msg.author.id] += 1
+		if (cooldowns[msg.author.id] > Date.now()) { 
+			msg.channel.send(txt.warn_cooldown)
+			return 
+		} else { 
+			cooldowns[msg.author.id] = Date.now() + cfg.cooldown 
 		}
-	} else {
-		temp.users[msg.author.id] = 1
-	}
-	file.writeFile('./data/temp.json', JSON.stringify(temp, null, 4), () => {})
-	
-	// Return if message is either from a bot or doesn't start with command prefix. Keep non-commands above this line.
-	if (msg.content.substring(0, cfg.prefix.length) !== cfg.prefix) { return }
 
-	if (cooldowns[msg.author.id] > Date.now()) { 
-		msg.channel.send(txt.warn_cooldown)
-		return 
-	} else { 
-		cooldowns[msg.author.id] = Date.now() + cfg.cooldown 
-	}
+		let cmd = command.parse(msg.cleanContent)
 
-	let cmd = command.parse(msg.content)
-
-	// If the we cannot find the command we'll try to find a command with that alias instead.
-	if (cmds[cmd.cmd] == null) {
-		let alias = Object.keys(cmds).find(x => cmds[x].alias === cmd.cmd)
-		if (alias !== undefined) {
-			cmd.cmd = alias
-		} else {
-			msg.channel.send(replaceVar(txt.err_invalid_cmd, cfg.prefix))
-			return
+		// If the we cannot find the command we'll try to find a command with that alias instead.
+		if (cmds[cmd.cmd] == null) {
+			let alias = Object.keys(cmds).find(x => cmds[x].alias === cmd.cmd)
+			if (alias !== undefined) {
+				cmd.cmd = alias
+			} else {
+				msg.channel.send(replaceVar(txt.err_invalid_cmd, cfg.prefix))
+				return
+			}
 		}
-	}
 
-	try { 
-		cmds[cmd.cmd].command.run(msg, cmd.args) 
-	} catch (err) { 
-		console.error(err)
+		try { 
+			cmds[cmd.cmd].command.run(msg, cmd.args) 
+		} catch (err) { 
+			console.error(err)
 
-		if (err.message == null) {
-			msg.channel.send(err)
-		} else {
-			msg.channel.send('Internal error: ' + err.message)
+			if (err.message == null) {
+				msg.channel.send(err)
+			} else {
+				msg.channel.send('Internal error: ' + err.message)
+			}
 		}
-	}
+	})
 })
 
 bot.on('messageDelete', msg => {

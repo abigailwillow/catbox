@@ -30,7 +30,7 @@
 	{
 		"alias": "lb",
 		"tip": "Show the top catters.",
-		"args": [],
+		"args": ["number?"],
 		"category": "General",
 		"admin": 0,
 		"enabled": true

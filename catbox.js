@@ -13,8 +13,8 @@ let temp		= require('./data/temp.json')
 let maintenance = false
 let betRound	= { roundTime: 30, roundInterval: 5, inProgress: false, total: 0, players: {} }
 let serverInfo	= 'http://ip-api.com/json/?fields=17411'
-let relay		= '546410870146727949'
-let snipeArray 	= {}
+let snipeCache 	= {}
+bot.cooldowns = {}
 
 command.init(bot, cmds)
 
@@ -44,59 +44,39 @@ command.registerCommand('help', msg => {
 })
 
 command.registerCommand('about', msg => {
-	msg.channel.send({
-		embed: 
-		{
-			color: cfg.embedcolor,
-			author:
-			{
-				name: `${bot.users.get(cfg.author).username} and ${bot.users.get(cfg.operators[1]).username}`,
-				icon_url: bot.users.get(cfg.author).avatarURL
-			},
-			fields: 
-			[
-				{
-					name: 'Author',
-					value: `${bot.user.username} was made by ${bot.users.get(cfg.author).tag} and ${bot.users.get(cfg.operators[1]).tag}.`
-				},
-				{
-					name: 'Hosting',
-					value: txt.ad_text
-				}
-			],
-			footer: 
-			{
-			  icon_url: txt.ad_img,
-			  text: txt.ad_title
-			}
-		}
+	bot.fetchUser('144127590968459264').then(author => {
+		let embed = new discord.RichEmbed()
+		.setTitle(`View ${bot.user.username}'s repository`)
+		.setURL('https://github.com/galaxyzd/catbox')
+		.setColor(cfg.embedcolor)
+		.setAuthor(`${author.tag}`, author.avatarURL, 'https://github.com/galaxyzd/')
+		.setDescription(txt.ad_text)
+
+		msg.channel.send({embed})
 	})
 })
 
 command.registerCommand('send', (msg, channel, message) => {
-	if (channel !== undefined) { 
-		channel.send(message) 
-	} else {
-		msg.channel.send(txt.err_no_channel)
-	}
+	channel.type === 'text' ? channel.send(message) : msg.channel.send(txt.err_no_channel)
 })
 
-command.registerCommand('leaderboard', msg => {
-	database.getRichestUsers(10, users => {
-		let richestUsers = users
-		let richestUsersString = ''
+command.registerCommand('leaderboard', (msg, amount) => {
+	database.getRichestUsers(Math.min(Math.max(5, amount || 10), 25), users => {
+		let richestUsers = ''
 
-		for (let i = 0; i < richestUsers.length; i++) {
-			let user = richestUsers[i]
-			let member = getMember(msg.guild, user.id)
-			richestUsersString += member ? `\`${('0' + (i + 1)).slice(-2)}.\` ${user.formattedBalance} ${pluralize('cat', user.balance)} - **${member.displayName}\n**` : ''
+		for (let i = 0; i < users.length; i++) {
+			let user = users[i]
+			let discordUser = getUser(user.id)
+			let userIsAuthor = discordUser && discordUser.id === msg.author.id
+			let username = `${userIsAuthor ? '>' : ''}${discordUser ? discordUser.tag : 'Unknown User'}${userIsAuthor ? '<' : ''}`
+			richestUsers += `\`${('0' + (i + 1)).slice(-2)}\` ${user.formattedBalance} ${pluralize('cat', user.balance)} - **${username}\n**`
 		}
 	
 		let embed = new discord.RichEmbed()
-		.setAuthor('😻 Catbox Leaderboard')
+		.setAuthor('😻 Global Leaderboard')
 		.setColor(cfg.embedcolor)
 		.setTimestamp()
-		.addField('10 Richest Users', richestUsersString)
+		.addField('10 Richest Users', richestUsers)
 	
 		msg.channel.send({embed})
 	})
@@ -315,7 +295,9 @@ command.registerCommand('eval', (msg, code) => {
 	try {
 		eval(code)
 	} catch (err) {
-		msg.channel.send(`The following went wrong: *${err}*`)
+		let errorMessage = `An internal error occured: \`${err.message ? err.message : err}\``
+		console.error(err)
+		msg.channel.send(errorMessage)
 	}
 })
 
@@ -397,21 +379,21 @@ command.registerCommand('meme', (msg, tag) => {
 
 command.registerCommand('snipe', (msg, option) => {
 	let curSnipeArray = []
-	if (snipeArray.hasOwnProperty(msg.guild.id)) {
+	if (snipeCache.hasOwnProperty(msg.guild.id)) {
 		if (option === 'all') {
-			curSnipeArray = snipeArray[msg.guild.id]
+			curSnipeArray = snipeCache[msg.guild.id]
 		} else if (option === 'clear') {
 			if (cfg.operators.includes(msg.author.id)) {
-				snipeArray[msg.guild.id] = []
+				snipeCache[msg.guild.id] = []
 				msg.channel.send('Snipe cache was cleared.')
 			} else {
 				msg.channel.send(txt.err_no_operator)
 			}
 			return
 		} else {
-			for (let i = 0; i < snipeArray[msg.guild.id].length; i++) {
-				if (snipeArray[msg.guild.id][i].channel.id === msg.channel.id) {
-					curSnipeArray.push(snipeArray[msg.guild.id][i])
+			for (let i = 0; i < snipeCache[msg.guild.id].length; i++) {
+				if (snipeCache[msg.guild.id][i].channel.id === msg.channel.id) {
+					curSnipeArray.push(snipeCache[msg.guild.id][i])
 				}
 			}
 		}
@@ -446,8 +428,6 @@ command.registerCommand('joindate', (msg, user) => {
 	}
 })
 
-let cooldowns = {}
-
 /** 
  * Bot Events
  */
@@ -468,14 +448,13 @@ bot.on('ready', () => {
 		res.on('end', () => {
 			try {
 				serverInfo = JSON.parse(serverInfo)
-			} catch(e) {
+			} catch(err) {
+				console.error(err)
 				print("Server info could not be retrieved.")
 				serverInfo = {"country":"Unknown","countryCode":"??","org":"Server info could not be retrieved.","status":"success"}
 			}
 		})
 	}).on('error', err => print(txt.err_no_connection))
-
-	relay = bot.channels.get(relay)
 })
 
 bot.on('message', msg => {
@@ -489,12 +468,8 @@ bot.on('message', msg => {
 		// Return if message is either from a bot or doesn't start with command prefix. Keep non-commands above this line.
 		if (msg.author.bot || msg.cleanContent.substring(0, cfg.prefix.length) !== cfg.prefix) { return }
 
-		if (cooldowns[msg.author.id] > Date.now()) { 
-			msg.channel.send(txt.warn_cooldown)
-			return 
-		} else { 
-			cooldowns[msg.author.id] = Date.now() + cfg.cooldown 
-		}
+		if (bot.cooldowns[msg.author.id] > Date.now()) { msg.channel.send(txt.warn_cooldown); return }
+		bot.cooldowns[msg.author.id] = Date.now() + cfg.cooldown 
 
 		let cmd = command.parse(msg.cleanContent)
 
@@ -512,27 +487,23 @@ bot.on('message', msg => {
 		try { 
 			cmds[cmd.cmd].command.run(msg, cmd.args) 
 		} catch (err) { 
+			let errorMessage = `An internal error occured: \`${err.message ? err.message : err}\``
 			console.error(err)
-
-			if (err.message == null) {
-				msg.channel.send(err)
-			} else {
-				msg.channel.send('Internal error: ' + err.message)
-			}
+			msg.channel.send(errorMessage)
 		}
 	})
 })
 
 bot.on('messageDelete', msg => {
-	if (!snipeArray.hasOwnProperty(msg.guild.id)) {
-		snipeArray[msg.guild.id] = []
+	if (!snipeCache.hasOwnProperty(msg.guild.id)) {
+		snipeCache[msg.guild.id] = []
 	}
 
-	if (snipeArray[msg.guild.id].length > 5) {
-		snipeArray[msg.guild.id].pop()
+	if (snipeCache[msg.guild.id].length > 5) {
+		snipeCache[msg.guild.id].pop()
 	}
 
-	snipeArray[msg.guild.id].push(msg)
+	snipeCache[msg.guild.id].push(msg)
 })
 
 /** 
@@ -589,12 +560,30 @@ function getMember(guild, identifier) {
 	}
 }
 
+function getMember(guild, identifier) {
+	if (identifier instanceof discord.GuildMember) {
+		return identifier
+	} else {
+		identifier = identifier.toLowerCase()
+		return guild.members.find(x => x.id === identifier || x.user.username.toLowerCase().includes(identifier) || x.displayName.toLowerCase().includes(identifier))
+	}
+}
+
 function getChannel(guild, identifier) {
 	if (identifier instanceof discord.Channel) {
 		return identifier
 	} else {
 		identifier = identifier.toLowerCase()
 		return guild.channels.find(x => x.type === 'text' && (x.id === identifier || x.name.toLowerCase().includes(identifier)))
+	}
+}
+
+function getUser(identifier) {
+	if (identifier instanceof discord.User) {
+		return identifier
+	} else {
+		identifier = identifier.toLowerCase()
+		return bot.users.find(x => x.id === identifier || x.username.toLowerCase().includes(identifier))
 	}
 }
 

@@ -84,13 +84,11 @@ command.registerCommand('leaderboard', (msg, amount) => {
 
 command.registerCommand('spawn', (msg, member, amount) => {
 	if (member instanceof Map) {
-		member.forEach(m => {
-			database.changeBalance(m.id, amount)
-		})
-
-		msg.channel.send(`**Everyone** has received ${amount.toLocaleString()} ${pluralize('cat', amount)}.`)
+		member.forEach(m => database.getUser(m.id, user => user.changeBalance(amount)))
+		msg.channel.send(`**All online users** were granted ${amount.toLocaleString()} ${pluralize('cat', amount)}.`)
 	} else {
-		database.changeBalance(member.id, amount).then(() => {
+		database.getUser(member.id, user => {
+			user.changeBalance(amount)
 			msg.channel.send(`**${member.displayName}** was granted ${amount.toLocaleString()} ${pluralize('cat', amount)}.`)
 		})
 	}
@@ -117,16 +115,8 @@ command.registerCommand('give', (msg, member, amount) => {
 })
 
 command.registerCommand('balance', (msg, member) => {
-	let user = member ? member.user : msg.author
-
-	database.getUser(user.id).then(bal => {
-		if (bal != null) {
-			msg.channel.send(`**${user.username}** has ${bal} ${pluralize('cat', bal)}`)
-		} else {
-			msg.channel.send(`**${user.username}** has 0 cats`)
-			database.addNewUser(user.id)
-		}
-	})
+	member = member || msg.member
+	database.getUser(member.id, user => msg.channel.send(`**${member.displayName}** has ${user.formattedBalance} ${pluralize('cat', user.balance)}`))
 })
 
 command.registerCommand('maintenance', (msg, maintenanceMode) => {

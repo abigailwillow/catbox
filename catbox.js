@@ -65,16 +65,17 @@ command.registerCommand('leaderboard', (msg, amount) => {
 	msg.channel.startTyping()
 	database.getRichestUsers(amount, users => {
 		let richestUsers = ''
+		users.forEach((u, index) => {
+			bot.fetchUser(u.id).then(() => {
+				if (index === users.length - 1) {
+					users.forEach(user, user => {
+						console.log(`${index}: ${discordUser.username}`)
+						let userIsAuthor = discordUser && discordUser.id === msg.author.id
+						let discordUser = bot.users.find(x => x.id === user.id)
+						let username = `${userIsAuthor ? '>' : ''}${discordUser ? discordUser.tag : 'Unknown User'}${userIsAuthor ? '<' : ''}`
+						richestUsers += `\`${('0' + (index + 1)).slice(-2)}\` ${user.formattedBalance} ${pluralize('cat', user.balance)} - **${username}\n**`
+					})
 
-		for (let i = 0; i < users.length; i++) {
-			let user = users[i]
-			bot.fetchUser(user.id).then(discordUser => {
-
-				let userIsAuthor = discordUser && discordUser.id === msg.author.id
-				let username = `${userIsAuthor ? '>' : ''}${discordUser ? discordUser.tag : 'Unknown User'}${userIsAuthor ? '<' : ''}`
-				richestUsers += `\`${('0' + (i + 1)).slice(-2)}\` ${user.formattedBalance} ${pluralize('cat', user.balance)} - **${username}\n**`
-
-				if (i === users.length - 1) {
 					let embed = new discord.RichEmbed()
 					.setAuthor('😻 Global Leaderboard')
 					.setColor(cfg.embedcolor)
@@ -84,8 +85,8 @@ command.registerCommand('leaderboard', (msg, amount) => {
 					msg.channel.send({embed})
 					msg.channel.stopTyping()
 				}
-			}).catch(err => { throw err } )
-		}
+			})
+		})
 	})
 })
 

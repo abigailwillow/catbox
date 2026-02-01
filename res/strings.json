@@ -9,8 +9,5 @@
 	"err_invalid_amt": "Invalid amount of cats.",
 	"err_no_everyone": "You can't target everyone.",
 	"err_no_connection": "HTTP request could not be completed. Is server offline?",
-	"warn_cooldown": "Please wait a bit between using commands.",
-	"ad_title": "Encrypted Laser",
-	"ad_img": "http://elhs.co/assets/branding/White_Logo.png",
-	"ad_text": "This bot is hosted with [PrimeNodes](https://primenodes.com/t/hybrid).\nIf you want affordable quality hosting for your own Discord bot use code **COSMOS** for 5% off on any VPS, or 10% off any [Encrypted Laser](https://elhs.co/t/game) game server."
+	"warn_cooldown": "Please wait a bit between using commands."
 }

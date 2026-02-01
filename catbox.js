@@ -51,29 +51,25 @@ command.linkCommand('help', msg => {
 })
 
 command.linkCommand('about', msg => {
-    msg.channel.send({
-        embeds: [
-            new EmbedBuilder()
-            .setColor(cfg.embedcolor)
-            .setAuthor({
-                name: `${client.users.cache.get(cfg.author).username} and ${client.users.cache.get(cfg.operators[1]).username}`,
-                iconURL: client.users.cache.get(cfg.author).displayAvatarURL()
+    client.users.fetch(cfg.author).then(author => {
+        client.users.fetch(cfg.operators[1]).then(operator => {
+            msg.channel.send({
+                embeds: [
+                    new EmbedBuilder()
+                    .setColor(cfg.embedcolor)
+                    .setAuthor({
+                        name: `${author.username} and ${operator.username}`,
+                        iconURL: author.displayAvatarURL()
+                    })
+                    .addFields(
+                        {
+                            name: 'Authors',
+                            value: `${client.user.username} was made by ${author.tag} and ${operator.tag}.`
+                        }
+                    )
+                ]
             })
-            .addFields(
-                {
-                    name: 'Author',
-                    value: `${client.user.username} was made by ${client.users.cache.get(cfg.author).tag} and ${client.users.cache.get(cfg.operators[1]).tag}.`
-                },
-                {
-                    name: 'Hosting',
-                    value: txt.ad_text
-                }
-            )
-            .setFooter({
-                iconURL: txt.ad_img,
-                text: txt.ad_title
-            })
-        ]
+        })
     })
 })
 
@@ -166,7 +162,7 @@ command.linkCommand('balance', (msg, member) => {
     let user = member ? member.user : msg.author
 
     let bal = getBalance(user.id)
-    msg.channel.send(`**${user.username}** has ${pluralize('cat', bal, true)}`)
+    msg.channel.send(`**${user.displayName}** has ${pluralize('cat', bal, true)}`)
 })
 
 command.linkCommand('maintenance', (msg, bool) => {
@@ -254,7 +250,8 @@ command.linkCommand('check', (msg, number) => {
 })
 
 command.linkCommand('bet', (msg, amount) => {
-    let roundMsg = null; let user = msg.author
+    let roundMsg = null
+    let user = msg.author
     if (getBalance(user.id) < amount) { msg.channel.send(txt.err_no_cats); return }
     if (amount <= 0) { msg.channel.send(txt.err_invalid_amt); return }
     changeBalance(user.id, -amount)
@@ -349,84 +346,7 @@ command.linkCommand('eval', (msg, code) => {
 
 command.linkCommand('ping', msg => {
     msg.channel.send(`Latency to Discord is ${Math.round(client.ws.ping)}ms`)
-    .then(m => m.edit(m.content + `, latency to catbox's server (${serverInfo.countryCode}) is ${m.createdTimestamp - msg.createdTimestamp}ms`))
-})
-
-command.linkCommand('meme', (msg, tag) => {
-    let id = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi.exec(tag)
-    let data = ''
-    msg.channel.sendTyping()
-    if (id == null) {
-        let args = JSON.stringify({Tag: (tag == null) ? 'short' : tag})
-        let options = {
-            hostname: 'api.memes.fyi',
-            path: '/Videos/Random',
-            method: 'POST',
-            header: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': Buffer.byteLength(args)
-            }
-        }
-
-        let req = https.request(options, res => {
-            res.setEncoding('utf8')
-            res.on('data', x => data += x)
-            res.on('end', () => {
-                data = JSON.parse(data)
-                if (data.Status === 200) {
-                    let niceURL = `https://memes.fyi/v/${data.Data.Key}`
-                    msg.channel.send(`Here's a random ${(tag != null) ? `${tag} ` : ''}meme by ${data.Data.Username}.\n${niceURL}`)
-                } else {
-                    msg.channel.send(`${data.StatusMessage} (${data.Status})`)
-                }
-            })
-        })
-
-        req.on('error', err => msg.channel.send(txt.err_no_connection))
-        req.write(args)
-        req.end()
-    } else {
-        https.get(`https://api.memes.fyi/Video/${id}`, res => {
-            res.on('data', x => data += x)
-            res.on('end', () => {
-                data = JSON.parse(data)
-                if (data.Status === 200) {
-                    let tags = ''
-                    for (let i = 0; i < data.Data.Tags.length - 1; i++) {
-                        const tag = data.Data.Tags[i].Tag;
-                        tags += `${tag}, `
-                    } tags += data.Data.Tags[data.Data.Tags.length - 1].Tag
-                    let embed = new EmbedBuilder()
-                    .setAuthor({
-                        name: `${data.Data.Title} ${(data.Data.NSFW) ? '(NSFW)' : ''}`,
-                        url: `https://memes.fyi/v/${data.Data.Key}`
-                    })
-                    .setColor(cfg.embedcolor)
-                    .setImage(data.Data.Thumbnail)
-                    .addFields(
-                        { name: 'Author', value: data.Data.Username, inline: true },
-                        { name: 'Tags', value: tags, inline: true },
-                        { name: 'Duration', value: `${('0' + Math.floor(data.Data.Duration / 60)).slice(-2)}:${('0' + data.Data.Duration % 60).slice(-2)}`, inline: true },
-                        { name: 'Upload Date', value: data.Data.DateAdded, inline: true }
-                    )
-                    .setFooter({
-                        text: `Viewed ${pluralize('time', data.Data.Views, true)}` +
-                        `${(data.Data.DateApproved == null) ? ' | Not yet approved' : ''}`
-                    })
-
-                    if (data.Data.Source !== '') {
-                         embed.addFields({ name: 'Source', value: data.Data.Source })
-                    }
-
-                    embed.addFields({ name: '\u200b', value: '\u200b', inline: false })
-
-                    msg.channel.send({ embeds: [embed] })
-                } else {
-                    msg.channel.send(`${data.StatusMessage} (${data.Status})`)
-                }
-            })
-        }).on('error', err => msg.channel.send(txt.err_no_connection))
-    }
+    .then(m => m.edit(m.content + `, latency to Catbox's server (${serverInfo.countryCode}) is ${m.createdTimestamp - msg.createdTimestamp}ms`))
 })
 
 command.linkCommand('snipe', (msg, option) => {

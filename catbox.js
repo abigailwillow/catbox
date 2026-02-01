@@ -1,8 +1,8 @@
-const discord = require("discord.js");
-const { GatewayIntentBits, EmbedBuilder, ActivityType } = require("discord.js");
-const file = require("fs");
-const http = require("http");
-const https = require("https");
+const discord = require('discord.js')
+const { GatewayIntentBits, EmbedBuilder, ActivityType } = require('discord.js')
+const file = require('fs')
+const http = require('http')
+const https = require('https')
 const bot = new discord.Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -10,55 +10,55 @@ const bot = new discord.Client({
         GatewayIntentBits.MessageContent,
         GatewayIntentBits.GuildMembers,
     ],
-});
-const cfg = require("./cfg/config.json");
-const cmds = require("./cfg/commands.json");
-const txt = require("./res/strings.json");
-const command = require("./lib/commandhandler.js");
-let data = require("./data/userdata.json");
-let temp = require("./data/temp.json");
-let maintenance = false;
+})
+const cfg = require('./cfg/config.json')
+const cmds = require('./cfg/commands.json')
+const txt = require('./res/strings.json')
+const command = require('./lib/commandhandler.js')
+let data = require('./data/userdata.json')
+let temp = require('./data/temp.json')
+let maintenance = false
 let betRound = {
     roundTime: 30,
     roundInterval: 5,
     inProgress: false,
     total: 0,
     players: {},
-};
-let serverInfo = "http://ip-api.com/json/?fields=17411";
-let relay = "546410870146727949";
-let snipeArray = {};
+}
+let serverInfo = 'http://ip-api.com/json/?fields=17411'
+let relay = '546410870146727949'
+let snipeArray = {}
 
-command.init(bot, cmds);
+command.init(bot, cmds)
 
-command.linkCommand("help", (msg) => {
-    let categories = [];
+command.linkCommand('help', (msg) => {
+    let categories = []
     Object.keys(cmds).forEach((cmd) => {
         if (!categories.includes(cmds[cmd].category) && cmds[cmd].admin !== 2) {
-            categories.push(cmds[cmd].category);
+            categories.push(cmds[cmd].category)
         }
-    });
+    })
     let embed = new EmbedBuilder()
         .setAuthor({
-            name: "Catbox Commands",
+            name: 'Catbox Commands',
             iconURL:
-                "https://cdn.discordapp.com/attachments/456889532227387405/538354324028260377/youwhat_hd.png",
+                'https://cdn.discordapp.com/attachments/456889532227387405/538354324028260377/youwhat_hd.png',
         })
         .setColor(cfg.embedcolor)
-        .setTimestamp();
+        .setTimestamp()
     categories.forEach((cat) => {
-        let txt = "";
+        let txt = ''
         Object.keys(cmds).forEach((cmd) => {
             if (cmds[cmd].category === cat && cmds[cmd].admin !== 2) {
-                txt += `\`${cfg.prefix}${cmd} ${String(cmds[cmd].args).replace(",", " ")}\`­­­­­­­­­­­­­­­\n${cmds[cmd].tip}\n`;
+                txt += `\`${cfg.prefix}${cmd} ${String(cmds[cmd].args).replace(',', ' ')}\`­­­­­­­­­­­­­­­\n${cmds[cmd].tip}\n`
             }
-        });
-        embed.addFields({ name: cat + " commands", value: txt });
-    });
-    msg.channel.send({ embeds: [embed] });
-});
+        })
+        embed.addFields({ name: cat + ' commands', value: txt })
+    })
+    msg.channel.send({ embeds: [embed] })
+})
 
-command.linkCommand("about", (msg) => {
+command.linkCommand('about', (msg) => {
     const aboutEmbed = new EmbedBuilder()
         .setColor(cfg.embedcolor)
         .setAuthor({
@@ -67,369 +67,369 @@ command.linkCommand("about", (msg) => {
         })
         .addFields(
             {
-                name: "Author",
+                name: 'Author',
                 value: `${bot.user.username} was made by ${bot.users.cache.get(cfg.author).tag} and ${bot.users.cache.get(cfg.operators[1]).tag}.`,
             },
             {
-                name: "Hosting",
+                name: 'Hosting',
                 value: txt.ad_text,
             }
         )
         .setFooter({
             iconURL: txt.ad_img,
             text: txt.ad_title,
-        });
+        })
 
-    msg.channel.send({ embeds: [aboutEmbed] });
-});
+    msg.channel.send({ embeds: [aboutEmbed] })
+})
 
-command.linkCommand("send", (msg, channel, message) => {
+command.linkCommand('send', (msg, channel, message) => {
     if (channel !== undefined) {
-        channel.send(message);
+        channel.send(message)
     } else {
-        msg.channel.send(txt.err_no_channel);
+        msg.channel.send(txt.err_no_channel)
     }
-});
+})
 
-command.linkCommand("leaderboard", (msg) => {
-    data = require("./data/userdata.json");
+command.linkCommand('leaderboard', (msg) => {
+    data = require('./data/userdata.json')
 
-    let validUsers = [];
-    let richestStr = "";
-    let streakStr = "";
+    let validUsers = []
+    let richestStr = ''
+    let streakStr = ''
     data.forEach((user) => {
-        let m = getMember(msg.guild, user.id);
+        let m = getMember(msg.guild, user.id)
         if (m !== undefined && m !== null) {
-            validUsers.push(user);
+            validUsers.push(user)
         }
-    });
+    })
 
-    let richest = validUsers.sort((a, b) => b.balance - a.balance);
-    richest = richest.slice(0, Math.min(richest.length, 10));
+    let richest = validUsers.sort((a, b) => b.balance - a.balance)
+    richest = richest.slice(0, Math.min(richest.length, 10))
 
-    let streaks = validUsers.sort((a, b) => b.streak - a.streak);
-    streaks = streaks.slice(0, Math.min(streaks.length, 5));
+    let streaks = validUsers.sort((a, b) => b.streak - a.streak)
+    streaks = streaks.slice(0, Math.min(streaks.length, 5))
 
     for (let i = 0; i < richest.length; i++) {
-        let user = richest[i];
-        richestStr += `\`${("0" + (i + 1)).slice(-2)}.\` ${user.balance.toLocaleString()} ${pluralize("cat", user.balance)} - **${getMember(msg.guild, user.id).displayName}\n**`;
+        let user = richest[i]
+        richestStr += `\`${('0' + (i + 1)).slice(-2)}.\` ${user.balance.toLocaleString()} ${pluralize('cat', user.balance)} - **${getMember(msg.guild, user.id).displayName}\n**`
     }
 
     for (let i = 0; i < streaks.length; i++) {
-        let user = streaks[i];
-        streakStr += `\`${("0" + (i + 1)).slice(-2)}.\` ${user.streak.toLocaleString()} ${pluralize("cat", user.streak)} - **${getMember(msg.guild, user.id).displayName}\n**`;
+        let user = streaks[i]
+        streakStr += `\`${('0' + (i + 1)).slice(-2)}.\` ${user.streak.toLocaleString()} ${pluralize('cat', user.streak)} - **${getMember(msg.guild, user.id).displayName}\n**`
     }
 
     let embed = new EmbedBuilder()
         .setAuthor({
-            name: "Catbox Leaderboard",
+            name: 'Catbox Leaderboard',
             iconURL:
-                "https://cdn.discordapp.com/attachments/456889532227387405/538354324028260377/youwhat_hd.png",
+                'https://cdn.discordapp.com/attachments/456889532227387405/538354324028260377/youwhat_hd.png',
         })
         .setColor(cfg.embedcolor)
         .setTimestamp()
         .addFields(
-            { name: "10 Richest Users", value: richestStr },
-            { name: "\u200b", value: "\u200b" },
-            { name: "5 Highest Catstreaks", value: streakStr }
-        );
+            { name: '10 Richest Users', value: richestStr },
+            { name: '\u200b', value: '\u200b' },
+            { name: '5 Highest Catstreaks', value: streakStr }
+        )
 
-    msg.channel.send({ embeds: [embed] });
-});
+    msg.channel.send({ embeds: [embed] })
+})
 
-command.linkCommand("spawn", (msg, member, amount) => {
+command.linkCommand('spawn', (msg, member, amount) => {
     if (member instanceof Map) {
         member.forEach((m) => {
-            changeBalance(m.id, amount);
-        });
+            changeBalance(m.id, amount)
+        })
 
         msg.channel.send(
-            `**Everyone** has received ${amount.toLocaleString()} ${pluralize("cat", amount)}.`
-        );
+            `**Everyone** has received ${amount.toLocaleString()} ${pluralize('cat', amount)}.`
+        )
     } else {
         changeBalance(member.id, amount, (_) => {
             msg.channel.send(
-                `**${member.displayName}** was granted ${amount.toLocaleString()} ${pluralize("cat", amount)}.`
-            );
-        });
+                `**${member.displayName}** was granted ${amount.toLocaleString()} ${pluralize('cat', amount)}.`
+            )
+        })
     }
-});
+})
 
-command.linkCommand("give", (msg, member, amount) => {
-    let user = msg.member;
+command.linkCommand('give', (msg, member, amount) => {
+    let user = msg.member
 
     if (getBalance(user.id) < amount) {
-        msg.channel.send(txt.err_no_cats);
-        return;
+        msg.channel.send(txt.err_no_cats)
+        return
     }
     if (amount <= 0) {
-        msg.channel.send(txt.err_invalid_amt);
-        return;
+        msg.channel.send(txt.err_invalid_amt)
+        return
     }
 
     if (member instanceof Map) {
-        msg.channel.send(txt.err_no_everyone);
+        msg.channel.send(txt.err_no_everyone)
     } else {
         if (getBalance(user.id) >= amount) {
-            changeBalance(user.id, -amount);
+            changeBalance(user.id, -amount)
             changeBalance(member.id, amount, (_) => {
                 msg.channel.send(
-                    `**${user.displayName}** has given ${amount.toLocaleString()} ${pluralize("cat", amount)} to **${member.displayName}**.`
-                );
-            });
+                    `**${user.displayName}** has given ${amount.toLocaleString()} ${pluralize('cat', amount)} to **${member.displayName}**.`
+                )
+            })
         } else {
-            msg.channel.send(txt.err_no_cats);
+            msg.channel.send(txt.err_no_cats)
         }
     }
-});
+})
 
-command.linkCommand("balance", (msg, member) => {
-    let user = member ? member.user : msg.author;
+command.linkCommand('balance', (msg, member) => {
+    let user = member ? member.user : msg.author
 
-    let bal = getBalance(user.id);
+    let bal = getBalance(user.id)
     msg.channel.send(
-        `**${user.username}** has ${bal.toLocaleString()} ${pluralize("cat", bal)}`
-    );
-});
+        `**${user.username}** has ${bal.toLocaleString()} ${pluralize('cat', bal)}`
+    )
+})
 
-command.linkCommand("maintenance", (msg, bool) => {
+command.linkCommand('maintenance', (msg, bool) => {
     if (bool) {
         bot.guilds.cache.forEach((guild) => {
             guild.members.cache
                 .get(bot.user.id)
-                .setNickname(bot.user.username + " (maintenance)");
-        });
-        msg.channel.send("Maintenance mode enabled.");
-        print("Maintenance mode enabled.");
+                .setNickname(bot.user.username + ' (maintenance)')
+        })
+        msg.channel.send('Maintenance mode enabled.')
+        print('Maintenance mode enabled.')
     } else {
         bot.guilds.cache.forEach((guild) => {
-            guild.members.cache.get(bot.user.id).setNickname(bot.user.username);
-        });
-        msg.channel.send("Maintenance mode disabled.");
-        print("Maintenance mode disabled.");
+            guild.members.cache.get(bot.user.id).setNickname(bot.user.username)
+        })
+        msg.channel.send('Maintenance mode disabled.')
+        print('Maintenance mode disabled.')
     }
-    maintenance = bool;
-});
+    maintenance = bool
+})
 
-command.linkCommand("guess", (msg, guess) => {
-    let user = msg.author;
+command.linkCommand('guess', (msg, guess) => {
+    let user = msg.author
 
     if (temp.guessRound.num === false) {
-        temp.guessRound.max = randomInt(1, 5) * 100;
-        temp.guessRound.num = randomInt(0, temp.guessRound.max);
-        temp.guessRound.total = Math.round(temp.guessRound.max / 20);
+        temp.guessRound.max = randomInt(1, 5) * 100
+        temp.guessRound.num = randomInt(0, temp.guessRound.max)
+        temp.guessRound.total = Math.round(temp.guessRound.max / 20)
         file.writeFile(
-            "./data/temp.json",
+            './data/temp.json',
             JSON.stringify(temp, null, 4),
             () => {}
-        );
+        )
     }
 
     if (!guess) {
-        msg.channel.send(generateGuessRoundEmbed());
+        msg.channel.send(generateGuessRoundEmbed())
     } else {
         if (getBalance(user.id) <= 0) {
-            msg.channel.send(txt.err_no_cats);
-            return;
+            msg.channel.send(txt.err_no_cats)
+            return
         }
         if (
             temp.guessRound.guessed.includes(guess) ||
             guess < 0 ||
             guess > temp.guessRound.max
         ) {
-            msg.channel.send("Choose a different number.");
-            return;
+            msg.channel.send('Choose a different number.')
+            return
         }
-        changeBalance(user.id, -1);
-        temp.guessRound.guessed.push(guess);
-        temp.guessRound.total++;
+        changeBalance(user.id, -1)
+        temp.guessRound.guessed.push(guess)
+        temp.guessRound.total++
 
         if (guess === temp.guessRound.num) {
             msg.channel.send(
-                `**${user.username}** won ${temp.guessRound.total} ${pluralize("cat", temp.guessRound.total)}! Winning number was ${temp.guessRound.num}.`
-            );
-            changeBalance(user.id, temp.guessRound.total);
-            temp.guessRound.num = false;
-            temp.guessRound.guessed = [];
+                `**${user.username}** won ${temp.guessRound.total} ${pluralize('cat', temp.guessRound.total)}! Winning number was ${temp.guessRound.num}.`
+            )
+            changeBalance(user.id, temp.guessRound.total)
+            temp.guessRound.num = false
+            temp.guessRound.guessed = []
         } else {
-            msg.channel.send(`**${user.username}** guessed number ${guess}.`);
-            msg.channel.send(generateGuessRoundEmbed());
+            msg.channel.send(`**${user.username}** guessed number ${guess}.`)
+            msg.channel.send(generateGuessRoundEmbed())
         }
 
         file.writeFile(
-            "./data/temp.json",
+            './data/temp.json',
             JSON.stringify(temp, null, 4),
             () => {}
-        );
+        )
     }
-});
+})
 
-command.linkCommand("check", (msg, number) => {
-    let user = msg.author;
-    let guessNumber = temp.guessRound.num;
+command.linkCommand('check', (msg, number) => {
+    let user = msg.author
+    let guessNumber = temp.guessRound.num
 
-    let cost = getGuessCheckCost();
+    let cost = getGuessCheckCost()
 
     if (cost > getBalance(user.id)) {
-        msg.channel.send(txt.err_no_cats);
-        return;
+        msg.channel.send(txt.err_no_cats)
+        return
     }
     if (number < 0 || number > temp.guessRound.max) {
-        msg.channel.send(`You chose an invalid number.`);
-        return;
+        msg.channel.send(`You chose an invalid number.`)
+        return
     }
 
-    changeBalance(user.id, -cost);
+    changeBalance(user.id, -cost)
 
-    temp.guessRound.total += cost;
+    temp.guessRound.total += cost
     if (guessNumber === number) {
-        user.send(`${number} might be your lucky number today.`);
+        user.send(`${number} might be your lucky number today.`)
     } else if (guessNumber - number > 50) {
-        user.send(`The number is much higher than ${number}.`);
+        user.send(`The number is much higher than ${number}.`)
     } else if (guessNumber - number < -50) {
-        user.send(`The number is much lower than ${number}.`);
+        user.send(`The number is much lower than ${number}.`)
     } else if (guessNumber - number <= 50 && guessNumber - number > 0) {
-        user.send(`The number is higher than ${number}.`);
+        user.send(`The number is higher than ${number}.`)
     } else if (guessNumber - number >= -50 && guessNumber - number < 0) {
-        user.send(`The number is lower than ${number}.`);
+        user.send(`The number is lower than ${number}.`)
     } else {
-        user.send(`You chose an invalid number.`);
+        user.send(`You chose an invalid number.`)
     }
     msg.channel.send(
-        `**${user.username}** checked number ${number} and added ${cost} ${pluralize("cat", cost)} to the pool.`
-    );
-});
+        `**${user.username}** checked number ${number} and added ${cost} ${pluralize('cat', cost)} to the pool.`
+    )
+})
 
-command.linkCommand("bet", (msg, amount) => {
-    let roundMsg = null;
-    let user = msg.author;
+command.linkCommand('bet', (msg, amount) => {
+    let roundMsg = null
+    let user = msg.author
     if (getBalance(user.id) < amount) {
-        msg.channel.send(txt.err_no_cats);
-        return;
+        msg.channel.send(txt.err_no_cats)
+        return
     }
     if (amount <= 0) {
-        msg.channel.send(txt.err_invalid_amt);
-        return;
+        msg.channel.send(txt.err_invalid_amt)
+        return
     }
-    changeBalance(user.id, -amount);
-    betRound.total += amount;
+    changeBalance(user.id, -amount)
+    betRound.total += amount
     if (betRound.players.hasOwnProperty(user.id)) {
         msg.channel.send(
-            `**${user.username}** added ${amount.toLocaleString()} ${pluralize("cat", amount)}.`
-        );
-        betRound.players[user.id] += amount;
-        return;
+            `**${user.username}** added ${amount.toLocaleString()} ${pluralize('cat', amount)}.`
+        )
+        betRound.players[user.id] += amount
+        return
     } else {
-        betRound.players[user.id] = amount;
+        betRound.players[user.id] = amount
     }
 
     if (!betRound.inProgress) {
-        betRound.inProgress = true;
-        betRound.startTime = new Date().getTime();
+        betRound.inProgress = true
+        betRound.startTime = new Date().getTime()
         msg.channel.send(
-            `**${user.username}** just started a betting round with ${amount.toLocaleString()} ${pluralize("cat", amount)}! You have ${betRound.roundTime} seconds to join in!`
-        );
-        msg.channel.send(generateRoundEmbed()).then((msg) => (roundMsg = msg));
+            `**${user.username}** just started a betting round with ${amount.toLocaleString()} ${pluralize('cat', amount)}! You have ${betRound.roundTime} seconds to join in!`
+        )
+        msg.channel.send(generateRoundEmbed()).then((msg) => (roundMsg = msg))
         let IID = setInterval(() => {
-            roundMsg.edit("", generateRoundEmbed());
-        }, betRound.roundInterval * 1000);
+            roundMsg.edit('', generateRoundEmbed())
+        }, betRound.roundInterval * 1000)
         setTimeout(() => {
-            clearInterval(IID);
-            roundMsg.edit("", generateRoundEmbed());
+            clearInterval(IID)
+            roundMsg.edit('', generateRoundEmbed())
 
-            let winner = undefined;
-            let winNum = Math.random();
-            let total = 0;
+            let winner = undefined
+            let winNum = Math.random()
+            let total = 0
             shuffleArray(Object.keys(betRound.players)).forEach((ply) => {
-                total += betRound.players[ply] / betRound.total;
+                total += betRound.players[ply] / betRound.total
                 if (total >= winNum && winner == undefined) {
-                    winner = ply;
+                    winner = ply
                 }
-            });
+            })
             msg.channel.send(
-                `**${bot.users.cache.get(winner).username}** won ${betRound.total.toLocaleString()} ${pluralize("cat", betRound.total)} with a ${((betRound.players[winner] / betRound.total) * 100).toFixed(2)}% chance!`
-            );
-            changeBalance(winner, betRound.total);
-            betRound.inProgress = false;
-            betRound.total = 0;
-            betRound.players = {};
-        }, betRound.roundTime * 1000);
+                `**${bot.users.cache.get(winner).username}** won ${betRound.total.toLocaleString()} ${pluralize('cat', betRound.total)} with a ${((betRound.players[winner] / betRound.total) * 100).toFixed(2)}% chance!`
+            )
+            changeBalance(winner, betRound.total)
+            betRound.inProgress = false
+            betRound.total = 0
+            betRound.players = {}
+        }, betRound.roundTime * 1000)
     } else {
         msg.channel.send(
-            `**${user.username}** joined the current betting round with ${amount.toLocaleString()} ${pluralize("cat", amount)} (${((amount / betRound.total) * 100).toFixed(2)}% chance).`
-        );
+            `**${user.username}** joined the current betting round with ${amount.toLocaleString()} ${pluralize('cat', amount)} (${((amount / betRound.total) * 100).toFixed(2)}% chance).`
+        )
     }
-});
+})
 
-command.linkCommand("config", (msg, key, value) => {
-    let keyList = ["channel"];
-    if (key === "list") {
-        let list = "List of available config attributes: ";
+command.linkCommand('config', (msg, key, value) => {
+    let keyList = ['channel']
+    if (key === 'list') {
+        let list = 'List of available config attributes: '
         for (let i = 0; i < keyList.length - 1; i++) {
-            list += `\`${keyList[i]}\``;
+            list += `\`${keyList[i]}\``
         }
-        list += `\`${keyList[keyList.length - 1]}\``;
-        msg.channel.send(list);
+        list += `\`${keyList[keyList.length - 1]}\``
+        msg.channel.send(list)
     } else {
         switch (key) {
-            case "channel":
-                temp = require("./data/temp.json");
+            case 'channel':
+                temp = require('./data/temp.json')
                 if (value === null) {
-                    let list = "List of current forbidden channels: ";
+                    let list = 'List of current forbidden channels: '
                     if (temp.channels.length < 1) {
-                        list += "\`none\`";
+                        list += '\`none\`'
                     } else {
                         for (let i = 0; i < temp.channels.length - 1; i++) {
-                            list += `\`${temp.channels[i]}\``;
+                            list += `\`${temp.channels[i]}\``
                         }
-                        list += `\`${temp.channels[temp.channels.length - 1]}\``;
+                        list += `\`${temp.channels[temp.channels.length - 1]}\``
                     }
-                    msg.channel.send(list);
+                    msg.channel.send(list)
                 } else {
-                    let channel = getChannel(msg.guild, value);
+                    let channel = getChannel(msg.guild, value)
                     if (channel == null) {
-                        msg.channel.send(txt.err_no_channel);
+                        msg.channel.send(txt.err_no_channel)
                     } else {
                         if (temp.channels.includes(channel.id)) {
                             temp.channels.splice(
                                 temp.channels.indexOf(channel.id),
                                 1
-                            );
+                            )
                             msg.channel.send(
                                 `\`${channel.name}\` was removed from the list of forbidden channels.`
-                            );
+                            )
                         } else {
-                            temp.channels.push(channel.id);
+                            temp.channels.push(channel.id)
                             msg.channel.send(
                                 `\`${channel.name}\` was added to the list of forbidden channels.`
-                            );
+                            )
                         }
                     }
                 }
                 file.writeFile(
-                    "./data/temp.json",
+                    './data/temp.json',
                     JSON.stringify(temp, null, 4),
                     () => {}
-                );
-                break;
+                )
+                break
             default:
                 msg.channel.send(
                     `Sorry boss, I could not find any attribute called '${key}'. Try \`${cfg.prefix}config list\``
-                );
-                break;
+                )
+                break
         }
     }
-});
+})
 
-command.linkCommand("eval", (msg, code) => {
+command.linkCommand('eval', (msg, code) => {
     try {
-        eval(code);
+        eval(code)
     } catch (err) {
-        msg.channel.send(`The following went wrong: *${err}*`);
+        msg.channel.send(`The following went wrong: *${err}*`)
     }
-});
+})
 
-command.linkCommand("ping", (msg) => {
+command.linkCommand('ping', (msg) => {
     msg.channel
         .send(`Latency to Discord is ${Math.round(bot.ws.ping)}ms`)
         .then((m) =>
@@ -437,133 +437,133 @@ command.linkCommand("ping", (msg) => {
                 m.content +
                     `, latency to catbox's server (${serverInfo.countryCode}) is ${m.createdTimestamp - msg.createdTimestamp}ms`
             )
-        );
-});
+        )
+})
 
-command.linkCommand("meme", (msg, tag) => {
+command.linkCommand('meme', (msg, tag) => {
     let id =
         /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi.exec(
             tag
-        );
-    let data = "";
-    msg.channel.sendTyping();
+        )
+    let data = ''
+    msg.channel.sendTyping()
     if (id == null) {
-        let args = JSON.stringify({ Tag: tag == null ? "short" : tag });
+        let args = JSON.stringify({ Tag: tag == null ? 'short' : tag })
         let options = {
-            hostname: "api.memes.fyi",
-            path: "/Videos/Random",
-            method: "POST",
+            hostname: 'api.memes.fyi',
+            path: '/Videos/Random',
+            method: 'POST',
             header: {
-                "Content-Type": "application/x-www-form-urlencoded",
-                "Content-Length": Buffer.byteLength(args),
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Length': Buffer.byteLength(args),
             },
-        };
+        }
 
         let req = https.request(options, (res) => {
-            res.setEncoding("utf8");
-            res.on("data", (x) => (data += x));
-            res.on("end", () => {
-                data = JSON.parse(data);
+            res.setEncoding('utf8')
+            res.on('data', (x) => (data += x))
+            res.on('end', () => {
+                data = JSON.parse(data)
                 if (data.Status === 200) {
-                    let niceURL = `https://memes.fyi/v/${data.Data.Key}`;
+                    let niceURL = `https://memes.fyi/v/${data.Data.Key}`
                     msg.channel.send(
-                        `Here's a random ${tag != null ? `${tag} ` : ""}meme by ${data.Data.Username}.\n${niceURL}`
-                    );
+                        `Here's a random ${tag != null ? `${tag} ` : ''}meme by ${data.Data.Username}.\n${niceURL}`
+                    )
                 } else {
-                    msg.channel.send(`${data.StatusMessage} (${data.Status})`);
+                    msg.channel.send(`${data.StatusMessage} (${data.Status})`)
                 }
-            });
-        });
+            })
+        })
 
-        req.on("error", (err) => msg.channel.send(txt.err_no_connection));
-        req.write(args);
-        req.end();
+        req.on('error', (err) => msg.channel.send(txt.err_no_connection))
+        req.write(args)
+        req.end()
     } else {
         https
             .get(`https://api.memes.fyi/Video/${id}`, (res) => {
-                res.on("data", (x) => (data += x));
-                res.on("end", () => {
-                    data = JSON.parse(data);
+                res.on('data', (x) => (data += x))
+                res.on('end', () => {
+                    data = JSON.parse(data)
                     if (data.Status === 200) {
-                        let tags = "";
+                        let tags = ''
                         for (let i = 0; i < data.Data.Tags.length - 1; i++) {
-                            const tag = data.Data.Tags[i].Tag;
-                            tags += `${tag}, `;
+                            const tag = data.Data.Tags[i].Tag
+                            tags += `${tag}, `
                         }
-                        tags += data.Data.Tags[data.Data.Tags.length - 1].Tag;
+                        tags += data.Data.Tags[data.Data.Tags.length - 1].Tag
                         let embed = new EmbedBuilder()
                             .setAuthor({
-                                name: `${data.Data.Title} ${data.Data.NSFW ? "(NSFW)" : ""}`,
+                                name: `${data.Data.Title} ${data.Data.NSFW ? '(NSFW)' : ''}`,
                                 url: `https://memes.fyi/v/${data.Data.Key}`,
                             })
                             .setColor(cfg.embedcolor)
                             .setImage(data.Data.Thumbnail)
                             .addFields(
                                 {
-                                    name: "Author",
+                                    name: 'Author',
                                     value: data.Data.Username,
                                     inline: true,
                                 },
-                                { name: "Tags", value: tags, inline: true },
+                                { name: 'Tags', value: tags, inline: true },
                                 {
-                                    name: "Duration",
-                                    value: `${("0" + Math.floor(data.Data.Duration / 60)).slice(-2)}:${("0" + (data.Data.Duration % 60)).slice(-2)}`,
+                                    name: 'Duration',
+                                    value: `${('0' + Math.floor(data.Data.Duration / 60)).slice(-2)}:${('0' + (data.Data.Duration % 60)).slice(-2)}`,
                                     inline: true,
                                 },
                                 {
-                                    name: "Upload Date",
+                                    name: 'Upload Date',
                                     value: data.Data.DateAdded,
                                     inline: true,
                                 }
                             )
                             .setFooter({
                                 text:
-                                    `Viewed ${data.Data.Views} ${pluralize("time", data.Data.Views)}` +
-                                    `${data.Data.DateApproved == null ? " | Not yet approved" : ""}`,
-                            });
+                                    `Viewed ${data.Data.Views} ${pluralize('time', data.Data.Views)}` +
+                                    `${data.Data.DateApproved == null ? ' | Not yet approved' : ''}`,
+                            })
 
-                        if (data.Data.Source !== "") {
+                        if (data.Data.Source !== '') {
                             embed.addFields({
-                                name: "Source",
+                                name: 'Source',
                                 value: data.Data.Source,
-                            });
+                            })
                         }
 
                         embed.addFields({
-                            name: "\u200b",
-                            value: "\u200b",
+                            name: '\u200b',
+                            value: '\u200b',
                             inline: false,
-                        });
+                        })
 
-                        msg.channel.send({ embeds: [embed] });
+                        msg.channel.send({ embeds: [embed] })
                     } else {
                         msg.channel.send(
                             `${data.StatusMessage} (${data.Status})`
-                        );
+                        )
                     }
-                });
+                })
             })
-            .on("error", (err) => msg.channel.send(txt.err_no_connection));
+            .on('error', (err) => msg.channel.send(txt.err_no_connection))
     }
-});
+})
 
-command.linkCommand("snipe", (msg, option) => {
-    let curSnipeArray = [];
+command.linkCommand('snipe', (msg, option) => {
+    let curSnipeArray = []
     if (snipeArray.hasOwnProperty(msg.guild.id)) {
-        if (option === "all") {
-            curSnipeArray = snipeArray[msg.guild.id];
-        } else if (option === "clear") {
+        if (option === 'all') {
+            curSnipeArray = snipeArray[msg.guild.id]
+        } else if (option === 'clear') {
             if (cfg.operators.includes(msg.author.id)) {
-                snipeArray[msg.guild.id] = [];
-                msg.channel.send("Snipe cache was cleared.");
+                snipeArray[msg.guild.id] = []
+                msg.channel.send('Snipe cache was cleared.')
             } else {
-                msg.channel.send(txt.err_no_operator);
+                msg.channel.send(txt.err_no_operator)
             }
-            return;
+            return
         } else {
             for (let i = 0; i < snipeArray[msg.guild.id].length; i++) {
                 if (snipeArray[msg.guild.id][i].channel.id === msg.channel.id) {
-                    curSnipeArray.push(snipeArray[msg.guild.id][i]);
+                    curSnipeArray.push(snipeArray[msg.guild.id][i])
                 }
             }
         }
@@ -575,71 +575,71 @@ command.linkCommand("snipe", (msg, option) => {
             .setAuthor({
                 name: "SNIPED! Here's a list of recently deleted messages.",
             })
-            .setTimestamp();
+            .setTimestamp()
         curSnipeArray.forEach((m) => {
             if (m != null) {
                 embed.addFields({
                     name: `(${m.createdAt.toString().substr(16, 8)}) ${m.member.displayName} in #${m.channel.name}`,
                     value:
-                        `${m.content}${m.edits && m.edits.length > 1 ? ` \`(edited)\`\n**Original message:**\n${m.edits[m.edits.length - 1].content}` : ""}` +
-                        `${m.attachments.size > 0 ? `\n**Attachment:** ${Array.from(m.attachments.values())[0].proxyURL}` : ""}\n\`ID: ${m.id}\``,
-                });
+                        `${m.content}${m.edits && m.edits.length > 1 ? ` \`(edited)\`\n**Original message:**\n${m.edits[m.edits.length - 1].content}` : ''}` +
+                        `${m.attachments.size > 0 ? `\n**Attachment:** ${Array.from(m.attachments.values())[0].proxyURL}` : ''}\n\`ID: ${m.id}\``,
+                })
             }
-        });
+        })
 
-        msg.channel.send({ embeds: [embed] });
+        msg.channel.send({ embeds: [embed] })
     } else {
-        msg.channel.send("Whoops, I missed that.");
+        msg.channel.send('Whoops, I missed that.')
     }
-});
+})
 
-command.linkCommand("joindate", (msg, user) => {
-    let member = getMember(msg.guild, user);
+command.linkCommand('joindate', (msg, user) => {
+    let member = getMember(msg.guild, user)
 
     if (member != null) {
         msg.channel.send(
             `**${member.displayName}** joined on \`${member.joinedAt.toISOString().substring(0, 10)}\``
-        );
+        )
     } else {
-        msg.channel.send(txt.err_no_user);
+        msg.channel.send(txt.err_no_user)
     }
-});
+})
 
 setInterval(() => {
-    let d = new Date();
+    let d = new Date()
     if (d.getMinutes() === 0) {
         file.writeFile(
             `./data/backups/userdata-${d.toISOString().substr(0, 13)}.json`,
             JSON.stringify(data),
             () => {}
-        );
-        let total = 0;
+        )
+        let total = 0
         Object.keys(temp.users).forEach((u) => {
-            changeBalance(u, temp.users[u]);
-            total += temp.users[u];
-        });
-        temp.users = {};
+            changeBalance(u, temp.users[u])
+            total += temp.users[u]
+        })
+        temp.users = {}
         file.writeFile(
-            "./data/temp.json",
+            './data/temp.json',
             JSON.stringify(temp, null, 4),
             () => {}
-        );
-        cooldowns = {};
-        print(`Backups were made and ${total} hourly cats given out.`);
+        )
+        cooldowns = {}
+        print(`Backups were made and ${total} hourly cats given out.`)
     }
-}, 60000);
+}, 60000)
 
-let cooldowns = {};
-temp.bots = false;
-temp.odds = 0.5;
-temp.deltaOdds = 0;
+let cooldowns = {}
+temp.bots = false
+temp.odds = 0.5
+temp.deltaOdds = 0
 
 // Events
-bot.on("clientReady", () => {
-    print(`Logged in as ${bot.user.tag}!`);
+bot.on('clientReady', () => {
+    print(`Logged in as ${bot.user.tag}!`)
     print(
         `Currently serving ${bot.guilds.cache.size} servers and ${bot.users.cache.size} users.\n`
-    );
+    )
     bot.user.setPresence({
         activities: [
             {
@@ -650,304 +650,302 @@ bot.on("clientReady", () => {
                 ],
             },
         ],
-    });
+    })
 
     http.get(serverInfo, (res) => {
-        serverInfo = "";
-        res.on("data", (x) => (serverInfo += x));
-        res.on("end", () => {
+        serverInfo = ''
+        res.on('data', (x) => (serverInfo += x))
+        res.on('end', () => {
             try {
-                serverInfo = JSON.parse(serverInfo);
+                serverInfo = JSON.parse(serverInfo)
             } catch (e) {
-                print("Server info could not be retrieved.");
+                print('Server info could not be retrieved.')
                 serverInfo = {
-                    country: "Unknown",
-                    countryCode: "??",
-                    org: "Server info could not be retrieved.",
-                    status: "success",
-                };
+                    country: 'Unknown',
+                    countryCode: '??',
+                    org: 'Server info could not be retrieved.',
+                    status: 'success',
+                }
             }
-        });
-    }).on("error", (err) => print(txt.err_no_connection));
+        })
+    }).on('error', (err) => print(txt.err_no_connection))
 
-    relay = bot.channels.cache.get(relay);
-});
+    relay = bot.channels.cache.get(relay)
+})
 
-bot.on("messageCreate", (msg) => {
-    msg.content = msg.cleanContent;
+bot.on('messageCreate', (msg) => {
+    msg.content = msg.cleanContent
 
     if (
         (msg.author.bot && !temp.bots) ||
         (maintenance && msg.content !== `${cfg.prefix}maintenance false`)
     ) {
-        return;
+        return
     }
 
     if (temp.channels !== undefined) {
         if (temp.channels.includes(msg.channel.id)) {
-            return;
+            return
         }
     }
 
     if (temp.users.hasOwnProperty(msg.author.id)) {
         if (temp.users[msg.author.id] < 5) {
-            temp.users[msg.author.id] += 1;
+            temp.users[msg.author.id] += 1
         }
     } else {
-        temp.users[msg.author.id] = 1;
+        temp.users[msg.author.id] = 1
     }
-    file.writeFile("./data/temp.json", JSON.stringify(temp, null, 4), () => {});
+    file.writeFile('./data/temp.json', JSON.stringify(temp, null, 4), () => {})
 
     // Return if message is either from a bot or doesn't start with command prefix. Keep non-commands above this line.
     if (msg.content.substring(0, cfg.prefix.length) !== cfg.prefix) {
-        return;
+        return
     }
 
     if (cooldowns[msg.author.id] > Date.now()) {
-        msg.channel.send(txt.warn_cooldown);
-        return;
+        msg.channel.send(txt.warn_cooldown)
+        return
     } else {
-        cooldowns[msg.author.id] = Date.now() + cfg.cooldown;
+        cooldowns[msg.author.id] = Date.now() + cfg.cooldown
     }
 
-    let cmd = command.parseCommand(msg.content);
+    let cmd = command.parseCommand(msg.content)
 
     // If the we cannot find the command we'll try to find a command with that alias instead.
     if (cmds[cmd.cmd] == null) {
-        let alias = Object.keys(cmds).find((x) => cmds[x].alias === cmd.cmd);
+        let alias = Object.keys(cmds).find((x) => cmds[x].alias === cmd.cmd)
         if (alias !== undefined) {
-            cmd.cmd = alias;
+            cmd.cmd = alias
         } else {
-            msg.channel.send(replaceVar(txt.err_invalid_cmd, cfg.prefix));
-            return;
+            msg.channel.send(replaceVar(txt.err_invalid_cmd, cfg.prefix))
+            return
         }
     }
 
     try {
-        cmds[cmd.cmd].command.run(msg, cmd.args);
+        cmds[cmd.cmd].command.run(msg, cmd.args)
     } catch (err) {
-        console.error(err);
+        console.error(err)
 
         if (err.message == null) {
-            msg.channel.send(err);
+            msg.channel.send(err)
         } else {
-            msg.channel.send("Internal error: " + err.message);
+            msg.channel.send('Internal error: ' + err.message)
         }
     }
-});
+})
 
-bot.on("messageDelete", (msg) => {
+bot.on('messageDelete', (msg) => {
     if (!snipeArray.hasOwnProperty(msg.guild.id)) {
-        snipeArray[msg.guild.id] = [];
+        snipeArray[msg.guild.id] = []
     }
 
     if (snipeArray[msg.guild.id].length > 5) {
-        snipeArray[msg.guild.id].pop();
+        snipeArray[msg.guild.id].pop()
     }
 
-    snipeArray[msg.guild.id].push(msg);
-});
+    snipeArray[msg.guild.id].push(msg)
+})
 
 function print(msg) {
-    let time = new Date().toISOString().substr(11, 8);
-    console.log(`(${time}) ${msg}`);
+    let time = new Date().toISOString().substr(11, 8)
+    console.log(`(${time}) ${msg}`)
 }
 
 function generateRoundEmbed() {
-    let pList = "";
+    let pList = ''
     let embed = new EmbedBuilder()
         .setAuthor({
-            name: `Betting Round - Total: ${betRound.total.toLocaleString()} ${pluralize("cat", betRound.total)}`,
+            name: `Betting Round - Total: ${betRound.total.toLocaleString()} ${pluralize('cat', betRound.total)}`,
             iconURL:
-                "https://cdn.discordapp.com/attachments/456889532227387405/538354324028260377/youwhat_hd.png",
+                'https://cdn.discordapp.com/attachments/456889532227387405/538354324028260377/youwhat_hd.png',
         })
-        .setColor(cfg.embedcolor);
+        .setColor(cfg.embedcolor)
     Object.keys(betRound.players).forEach((ply) => {
-        let curAmount = betRound.players[ply];
-        pList += `${curAmount.toLocaleString()} ${pluralize("cat", curAmount)} (${((curAmount / betRound.total) * 100).toFixed(2)}%) - **${bot.users.cache.get(ply).username}**\n`;
-    });
-    embed.setDescription(pList);
+        let curAmount = betRound.players[ply]
+        pList += `${curAmount.toLocaleString()} ${pluralize('cat', curAmount)} (${((curAmount / betRound.total) * 100).toFixed(2)}%) - **${bot.users.cache.get(ply).username}**\n`
+    })
+    embed.setDescription(pList)
     let timeLeft = Math.round(
         betRound.roundTime - (new Date().getTime() - betRound.startTime) / 1000
-    );
-    embed.setFooter({ text: `${timeLeft} seconds left.` });
+    )
+    embed.setFooter({ text: `${timeLeft} seconds left.` })
     if (timeLeft <= 0) {
-        embed.setFooter({ text: "This round is over." });
+        embed.setFooter({ text: 'This round is over.' })
     }
-    return embed;
+    return embed
 }
 
 function getGuessCheckCost() {
-    return 25 + Math.floor(temp.guessRound.guessed.length / 5);
+    return 25 + Math.floor(temp.guessRound.guessed.length / 5)
 }
 
 function generateGuessRoundEmbed() {
-    let numList = `Maximum guess for this round: ${temp.guessRound.max}\n\nGuessed numbers: `;
+    let numList = `Maximum guess for this round: ${temp.guessRound.max}\n\nGuessed numbers: `
     let embed = new EmbedBuilder()
         .setAuthor({
-            name: `Guessing Round - Total: ${temp.guessRound.total} ${pluralize("cat", temp.guessRound.total)}`,
+            name: `Guessing Round - Total: ${temp.guessRound.total} ${pluralize('cat', temp.guessRound.total)}`,
             iconURL:
-                "https://cdn.discordapp.com/attachments/456889532227387405/538354324028260377/youwhat_hd.png",
+                'https://cdn.discordapp.com/attachments/456889532227387405/538354324028260377/youwhat_hd.png',
         })
-        .setColor(cfg.embedcolor);
+        .setColor(cfg.embedcolor)
     if (
         temp.guessRound.guessed[0] !== undefined &&
         temp.guessRound.guessed[0] !== null
     ) {
-        let nums = temp.guessRound.guessed.sort((a, b) => a - b);
+        let nums = temp.guessRound.guessed.sort((a, b) => a - b)
         for (let i = 0; i < nums.length - 1; i++) {
-            numList += `${nums[i]}, `;
+            numList += `${nums[i]}, `
         }
-        numList += nums[nums.length - 1];
+        numList += nums[nums.length - 1]
     } else {
-        numList += "none";
+        numList += 'none'
     }
     embed
         .setDescription(numList)
-        .setFooter({ text: `Guess check cost: ${getGuessCheckCost()}` });
-    return embed;
+        .setFooter({ text: `Guess check cost: ${getGuessCheckCost()}` })
+    return embed
 }
 
 function getMember(guild, identifier) {
-    identifier = identifier.toLowerCase();
+    identifier = identifier.toLowerCase()
     return guild.members.cache.find(
         (x) =>
             x.id === identifier ||
             x.user.username.toLowerCase().includes(identifier) ||
             x.displayName.toLowerCase().includes(identifier)
-    );
+    )
 }
 
 function getChannel(guild, identifier) {
-    identifier = identifier.toLowerCase();
+    identifier = identifier.toLowerCase()
     return guild.channels.cache.find(
         (x) =>
             x.type === 0 &&
             (x.id === identifier || x.name.toLowerCase().includes(identifier))
-    );
+    )
 }
 
 function saveHighscore(userID, streak) {
-    data = require("./data/userdata.json");
+    data = require('./data/userdata.json')
 
-    let user = data.find((x) => x.id === userID);
+    let user = data.find((x) => x.id === userID)
     if (user == null) {
-        addUser(userID, null, streak);
-        return true;
+        addUser(userID, null, streak)
+        return true
     } else {
-        let newhs = user.streak < streak;
-        user.streak = newhs ? streak : user.streak;
-        saveData();
-        return newhs;
+        let newhs = user.streak < streak
+        user.streak = newhs ? streak : user.streak
+        saveData()
+        return newhs
     }
 }
 
 function addUser(userID, balance, streak) {
-    data = require("./data/userdata.json");
+    data = require('./data/userdata.json')
 
     if (data.find((x) => x.id === userID) == null) {
         data.push({
             id: userID,
             balance: balance == null ? 0 : balance,
             streak: streak == null ? 0 : streak,
-        });
+        })
 
-        saveData();
+        saveData()
     }
 }
 
 function saveData() {
     file.writeFile(
-        "./data/userdata.json",
+        './data/userdata.json',
         JSON.stringify(data, null, 4),
         () => {}
-    );
+    )
 }
 
 function changeBalance(userID, amount, callback) {
-    data = require("./data/userdata.json");
+    data = require('./data/userdata.json')
 
-    let user = data.find((x) => x.id === userID);
+    let user = data.find((x) => x.id === userID)
 
     if (user !== undefined) {
-        user.balance += amount;
+        user.balance += amount
     } else {
-        addUser(userID, amount);
+        addUser(userID, amount)
     }
 
-    saveData();
+    saveData()
 
     if (callback !== undefined) {
-        callback();
+        callback()
     }
 }
 
 function getBalance(userID) {
-    data = require("./data/userdata.json");
+    data = require('./data/userdata.json')
 
-    let user = data.find((x) => x.id === userID);
-    return user == null ? 0 : user.balance;
+    let user = data.find((x) => x.id === userID)
+    return user == null ? 0 : user.balance
 }
 
 function randomInt(min, max) {
-    return Math.round(Math.random() * (max - min) + min);
+    return Math.round(Math.random() * (max - min) + min)
 }
 
 function randomFloat(min, max) {
-    return Math.random() * (max - min) + min;
+    return Math.random() * (max - min) + min
 }
 
 function pluralize(word, count) {
     if (Math.abs(count) != 1) {
-        return word + "s";
+        return word + 's'
     } else {
-        return word;
+        return word
     }
 }
 
 function replaceVar(str, arg) {
-    return str.replace(/%\w+%/g, arg);
+    return str.replace(/%\w+%/g, arg)
 }
 
 function shuffleArray(a) {
     for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        let x = a[i];
-        a[i] = a[j];
-        a[j] = x;
+        const j = Math.floor(Math.random() * (i + 1))
+        let x = a[i]
+        a[i] = a[j]
+        a[j] = x
     }
-    return a;
+    return a
 }
 
-if (!cfg.token || cfg.token === "YOUR TOKEN HERE") {
-    console.error("\n[ERROR] No Discord bot token configured!");
+if (!cfg.token || cfg.token === 'YOUR TOKEN HERE') {
+    console.error('\n[ERROR] No Discord bot token configured!')
+    console.error('Please edit cfg/config.json and add your Discord bot token.')
     console.error(
-        "Please edit cfg/config.json and add your Discord bot token."
-    );
-    console.error(
-        "You can get a token from: https://discord.com/developers/applications\n"
-    );
-    process.exit(1);
+        'You can get a token from: https://discord.com/developers/applications\n'
+    )
+    process.exit(1)
 }
 
 bot.login(cfg.token).catch((error) => {
-    console.error("\n[ERROR] Failed to connect to Discord!");
+    console.error('\n[ERROR] Failed to connect to Discord!')
 
-    if (error.message && error.message.includes("disallowed intents")) {
-        console.error("\nThis bot requires privileged intents to be enabled:");
-        console.error("1. Go to https://discord.com/developers/applications");
-        console.error("2. Select your bot application");
-        console.error("3. Go to the 'Bot' section");
-        console.error("4. Enable these Privileged Gateway Intents:");
-        console.error("   - MESSAGE CONTENT INTENT");
-        console.error("   - SERVER MEMBERS INTENT");
-        console.error("5. Save changes and restart the bot\n");
-    } else if (error.message && error.message.includes("token")) {
-        console.error("The bot token appears to be invalid.");
-        console.error("Please check your token in cfg/config.json\n");
+    if (error.message && error.message.includes('disallowed intents')) {
+        console.error('\nThis bot requires privileged intents to be enabled:')
+        console.error('1. Go to https://discord.com/developers/applications')
+        console.error('2. Select your bot application')
+        console.error("3. Go to the 'Bot' section")
+        console.error('4. Enable these Privileged Gateway Intents:')
+        console.error('   - MESSAGE CONTENT INTENT')
+        console.error('   - SERVER MEMBERS INTENT')
+        console.error('5. Save changes and restart the bot\n')
+    } else if (error.message && error.message.includes('token')) {
+        console.error('The bot token appears to be invalid.')
+        console.error('Please check your token in cfg/config.json\n')
     } else {
-        console.error("Error details:", error.message || error);
+        console.error('Error details:', error.message || error)
     }
 
-    process.exit(1);
-});
+    process.exit(1)
+})

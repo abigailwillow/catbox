@@ -1,12 +1,16 @@
 {
   "name": "catbox",
-  "main": "catbox.js",
+  "main": "catbox.ts",
   "scripts": {
     "start": "node catbox.js",
     "dev": "node catbox.js"
   },
   "dependencies": {
+    "console-stamp": "^3.1.2",
     "discord.js": "^14.14.1",
     "pluralize": "^8.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
   }
 }

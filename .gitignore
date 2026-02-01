@@ -3,14 +3,18 @@
 /.direnv
 package-lock.json
 
+# TypeScript
+/dist
+
 # Data and Configuration
 config.json
 /data
+/backups
 
 # Nix flake files
 flake.nix
 flake.lock
 .envrc
 
-# VS Code Config
-.vscode/
+# Editors
+/.vscode

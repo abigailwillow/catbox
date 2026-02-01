@@ -2,4 +2,5 @@
 config.json
 /data
 /node_modules
+/.direnv
 package-lock.json

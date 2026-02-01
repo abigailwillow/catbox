@@ -1,29 +1,11 @@
 {
   "name": "catbox",
-  "version": "1.0.0",
-  "description": "A Discord bot for managing virtual cats currency and minigames",
   "main": "catbox.js",
   "scripts": {
     "start": "node catbox.js",
     "dev": "node catbox.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/yourusername/catbox.git"
-  },
-  "keywords": [
-    "discord",
-    "bot",
-    "discord-bot",
-    "currency",
-    "game"
-  ],
-  "author": "",
-  "license": "MIT",
   "dependencies": {
     "discord.js": "^14.14.1"
-  },
-  "engines": {
-    "node": ">=16.11.0"
   }
 }

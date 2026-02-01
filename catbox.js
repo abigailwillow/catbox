@@ -1,7 +1,7 @@
 const { Client, GatewayIntentBits, EmbedBuilder, ActivityType } = require('discord.js');
 const file = require('fs')
 const http = require('http')
-const https 	= require('https')
+const https = require('https')
 const bot = new Client( {
         intents: [
                 GatewayIntentBits.Guilds,
@@ -10,17 +10,17 @@ const bot = new Client( {
 				GatewayIntentBits.GuildMembers,
         ]
 });
-const cfg 		= require('./cfg/config.json')
-const cmds 		= require('./cfg/commands.json')
-const txt 		= require('./res/strings.json')
-const command 	= require('./lib/commandhandler.js')
-let data 		= require('./data/userdata.json')
-let temp 		= require('./data/temp.json')
+const cfg = require('./cfg/config.json')
+const cmds = require('./cfg/commands.json')
+const txt = require('./res/strings.json')
+const command = require('./lib/commandhandler.js')
+let data = require('./data/userdata.json')
+let temp = require('./data/temp.json')
 let maintenance = false
-let betRound 	= { roundTime: 30, roundInterval: 5, inProgress: false, total: 0, players: {} }
-let serverInfo 	= 'http://ip-api.com/json/?fields=17411'
-let relay 		= '546410870146727949'
-let snipeArray 	= {}
+let betRound = { roundTime: 30, roundInterval: 5, inProgress: false, total: 0, players: {} }
+let serverInfo = 'http://ip-api.com/json/?fields=17411'
+let relay = '546410870146727949'
+let snipeArray = {}
 
 command.init(bot, cmds)
 
@@ -32,7 +32,7 @@ command.linkCommand('help', msg => {
 	let embed = new EmbedBuilder()
 	.setAuthor({
 		name: 'Catbox Commands',
-		iconURL: 'https://cdn.discordapp.com/attachments/456889532227387405/538354324028260377/youwhat_hd.png'
+		iconURL: 'https://media.discordapp.net/attachments/1467535812391473203/1467549353895002142/youwhat.png?ex=6980c957&is=697f77d7&hm=f27f8414a1627bb833827e2a1144b7445096b9cdec5aca45876a930585f2d362'
 	})
 	.setColor(cfg.embedcolor)
 	.setTimestamp()
@@ -114,7 +114,7 @@ command.linkCommand('leaderboard', msg => {
 	let embed = new EmbedBuilder()
 	.setAuthor({
 		name: 'Catbox Leaderboard',
-		iconURL: 'https://cdn.discordapp.com/attachments/456889532227387405/538354324028260377/youwhat_hd.png'
+		iconURL: 'https://media.discordapp.net/attachments/1467535812391473203/1467549353895002142/youwhat.png?ex=6980c957&is=697f77d7&hm=f27f8414a1627bb833827e2a1144b7445096b9cdec5aca45876a930585f2d362'
 	})
 	.setColor(cfg.embedcolor)
 	.setTimestamp()
@@ -607,7 +607,7 @@ function generateRoundEmbed() {
 	let embed = new EmbedBuilder()
 	.setAuthor({
 		name: `Betting Round - Total: ${betRound.total.toLocaleString()} ${pluralize('cat', betRound.total)}`,
-		iconURL: 'https://cdn.discordapp.com/attachments/456889532227387405/538354324028260377/youwhat_hd.png'
+		iconURL: 'https://media.discordapp.net/attachments/1467535812391473203/1467549353895002142/youwhat.png?ex=6980c957&is=697f77d7&hm=f27f8414a1627bb833827e2a1144b7445096b9cdec5aca45876a930585f2d362'
 	})
 	.setColor(cfg.embedcolor)
 	Object.keys(betRound.players).forEach(ply => {
@@ -630,7 +630,7 @@ function generateGuessRoundEmbed() {
 	let embed = new EmbedBuilder()
 	.setAuthor({
 		name: `Guessing Round - Total: ${temp.guessRound.total} ${pluralize('cat', temp.guessRound.total)}`,
-		iconURL: 'https://cdn.discordapp.com/attachments/456889532227387405/538354324028260377/youwhat_hd.png'
+		iconURL: 'https://media.discordapp.net/attachments/1467535812391473203/1467549353895002142/youwhat.png?ex=6980c957&is=697f77d7&hm=f27f8414a1627bb833827e2a1144b7445096b9cdec5aca45876a930585f2d362'
 	})
 	.setColor(cfg.embedcolor)
 	if (temp.guessRound.guessed[0] !== undefined && temp.guessRound.guessed[0] !== null) {
@@ -741,31 +741,19 @@ function shuffleArray(a) {
 }
 
 if (!cfg.token || cfg.token === 'YOUR TOKEN HERE') {
-	console.error('\n[ERROR] No Discord bot token configured!')
-	console.error('Please edit cfg/config.json and add your Discord bot token.')
-	console.error(
-		'You can get a token from: https://discord.com/developers/applications\n'
-	)
+	console.error('\nNo Discord bot token configured!')
 	process.exit(1)
 }
 
 bot.login(cfg.token).catch((error) => {
-	console.error('\n[ERROR] Failed to connect to Discord!')
+	console.error('\nFailed to connect to Discord!')
 
 	if (error.message && error.message.includes('disallowed intents')) {
-		console.error('\nThis bot requires privileged intents to be enabled:')
-		console.error('1. Go to https://discord.com/developers/applications')
-		console.error('2. Select your bot application')
-		console.error("3. Go to the 'Bot' section")
-		console.error('4. Enable these Privileged Gateway Intents:')
-		console.error('   - MESSAGE CONTENT INTENT')
-		console.error('   - SERVER MEMBERS INTENT')
-		console.error('5. Save changes and restart the bot\n')
+		console.error('\nThis bot requires privileged intents to be enabled.')
 	} else if (error.message && error.message.includes('token')) {
-		console.error('The bot token appears to be invalid.')
-		console.error('Please check your token in cfg/config.json\n')
+		console.error('\nThe bot\'s token appears to be invalid.')
 	} else {
-		console.error('Error details:', error.message || error)
+		console.error('Unknown error:', error.message || error)
 	}
 
 	process.exit(1)

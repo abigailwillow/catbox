@@ -6,7 +6,7 @@ import config from '../../config/config.json';
 import localization from '../../resources/localization.json';
 
 export function handle(interaction: CommandInteraction) {
-    const commandLogic = path.join(__dirname, 'commands', interaction.commandName + '.ts');
+    const commandLogic = path.join(__dirname, '..', 'commands', interaction.commandName + '.js');
     if (file.existsSync(commandLogic)) {
         try {
             const command = require(commandLogic);
@@ -38,6 +38,6 @@ export function handle(interaction: CommandInteraction) {
         }
     } else {
         interaction.reply('Sorry, I couldn\'t figure out how to handle your command');
-        throw new Error(`${interaction.commandName}.ts file not found in commands directory.`);
+        throw new Error(`${commandLogic} file not found in commands directory.`);
     }
 }

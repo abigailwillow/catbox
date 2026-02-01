@@ -1,30 +1,17 @@
-import { EmbedBuilder } from 'discord.js';
+import { CommandInteraction, EmbedBuilder } from 'discord.js';
 import config from '../../config/config.json';
 
-export async function handle (interaction) {
+export async function handle (interaction: CommandInteraction) {
     const author = await interaction.client.users.fetch(config.author);
     const operator = await interaction.client.users.fetch(config.operators[1]);
-}
-
-command.linkCommand('about', msg => {
-    client.users.fetch(config.author).then(author => {
-        client.users.fetch(config.operators[1]).then(operator => {
-            msg.channel.send({
-                embeds: [
-                    new EmbedBuilder()
-                    .setColor(config.embedcolor)
-                    .setAuthor({
-                        name: `${author.username} and ${operator.username}`,
-                        iconURL: author.displayAvatarURL()
-                    })
-                    .addFields(
-                        {
-                            name: 'Authors',
-                            value: `${client.user.username} was made by ${author.tag} and ${operator.tag}.`
-                        }
-                    )
-                ]
-            })
+    let embed = new EmbedBuilder()
+        .setTitle('About Catbox')
+        .setURL('https://github.com/abigailwillow/catbox')
+        .setColor(config.embedcolor)
+        .setAuthor({
+            name: `${author.username} and ${operator.username}`,
+            iconURL: author.displayAvatarURL()
         })
-    })
-})
+        .setDescription('Felis ipsum dolor sit amet, consectetur purring elit. Sed do eiusmod meow-incididunt ut labore et kitten magna aliqua. Ut enim ad minim whiskers, quis nostrud scratching ullamco laboris nisi ut pounce ex ea commodo consequat. Duis aute irure felis in pounces-rehenderit in paws-tate velit esse cillum meow-lore eu pounce nulla pariatur.');
+    interaction.reply({ embeds: [embed] });
+}

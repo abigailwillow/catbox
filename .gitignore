@@ -4,3 +4,7 @@ config.json
 /node_modules
 /.direnv
 package-lock.json
+
+# Nix flake files
+flake.nix
+flake.lock

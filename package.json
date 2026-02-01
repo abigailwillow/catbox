@@ -1,5 +1,11 @@
 {
+  "name": "catbox",
+  "main": "catbox.js",
+  "scripts": {
+    "start": "node catbox.js",
+    "dev": "node catbox.js"
+  },
   "dependencies": {
-    "discord.js": "^14.25.1"
+    "discord.js": "^14.14.1"
   }
 }

@@ -1,25 +1,26 @@
-const { Client, GatewayIntentBits } = require('discord.js');
+const { Client, GatewayIntentBits, EmbedBuilder, ActivityType } = require('discord.js');
 const file = require('fs')
 const http = require('http')
-const https	= require('https')
-const client = new Client( {
-	intents: [
-		GatewayIntentBits.Guilds,
-		GatewayIntentBits.GuildMessages,
-		GatewayIntentBits.MessageContent,
-	]
+const https = require('https')
+const bot = new Client( {
+        intents: [
+                GatewayIntentBits.Guilds,
+                GatewayIntentBits.GuildMessages,
+                GatewayIntentBits.MessageContent,
+				GatewayIntentBits.GuildMembers,
+        ]
 });
-const cfg 		= require('./cfg/config.json')
-const cmds 		= require('./cfg/commands.json')
-const txt		= require('./res/strings.json')
-const command 	= require('./lib/commandhandler.js')
-let data		= require('./data/userdata.json')
-let temp		= require('./data/temp.json')
+const cfg = require('./cfg/config.json')
+const cmds = require('./cfg/commands.json')
+const txt = require('./res/strings.json')
+const command = require('./lib/commandhandler.js')
+let data = require('./data/userdata.json')
+let temp = require('./data/temp.json')
 let maintenance = false
-let betRound	= { roundTime: 30, roundInterval: 5, inProgress: false, total: 0, players: {} }
-let serverInfo	= 'http://ip-api.com/json/?fields=17411'
-let relay		= '1467536724061327592'
-let snipeArray 	= {}
+let betRound = { roundTime: 30, roundInterval: 5, inProgress: false, total: 0, players: {} }
+let serverInfo = 'http://ip-api.com/json/?fields=17411'
+let relay = '546410870146727949'
+let snipeArray = {}
 
 command.init(client, cmds)
 
@@ -28,8 +29,11 @@ command.linkCommand('help', msg => {
 	Object.keys(cmds).forEach(cmd => {
 		if (!categories.includes(cmds[cmd].category) && cmds[cmd].admin !== 2) { categories.push(cmds[cmd].category) }
 	})
-	let embed = new discord.RichEmbed()
-	.setAuthor('Catbox Commands', 'https://cdn.discordapp.com/attachments/456889532227387405/538354324028260377/youwhat_hd.png')
+	let embed = new EmbedBuilder()
+	.setAuthor({
+		name: 'Catbox Commands',
+		iconURL: 'https://media.discordapp.net/attachments/1467535812391473203/1467549353895002142/youwhat.png?ex=6980c957&is=697f77d7&hm=f27f8414a1627bb833827e2a1144b7445096b9cdec5aca45876a930585f2d362'
+	})
 	.setColor(cfg.embedcolor)
 	.setTimestamp()
 	categories.forEach(cat => {
@@ -40,38 +44,35 @@ command.linkCommand('help', msg => {
 				txt += `\`${cfg.prefix}${cmd} ${String(cmds[cmd].args).replace(',',' ')}\`­­­­­­­­­­­­­­­\n${cmds[cmd].tip}\n`
 			}
 		})
-		embed.addField(cat + ' commands', txt)
+		embed.addFields({ name: cat + ' commands', value: txt })
 	})
-	msg.channel.send({embed})
+	msg.channel.send({ embeds: [embed] })
 })
 
 command.linkCommand('about', msg => {
 	msg.channel.send({
-		embed: 
-		{
-			color: cfg.embedcolor,
-			author:
-			{
-				name: `${client.users.get(cfg.author).username} and ${client.users.get(cfg.operators[1]).username}`,
-				icon_url: client.users.get(cfg.author).avatarURL
-			},
-			fields: 
-			[
+		embeds: [
+			new EmbedBuilder()
+			.setColor(cfg.embedcolor)
+			.setAuthor({
+				name: `${bot.users.cache.get(cfg.author).username} and ${bot.users.cache.get(cfg.operators[1]).username}`,
+				iconURL: bot.users.cache.get(cfg.author).displayAvatarURL()
+			})
+			.addFields(
 				{
 					name: 'Author',
-					value: `${client.user.username} was made by ${client.users.get(cfg.author).tag} and ${client.users.get(cfg.operators[1]).tag}.`
+					value: `${bot.user.username} was made by ${bot.users.cache.get(cfg.author).tag} and ${bot.users.cache.get(cfg.operators[1]).tag}.`
 				},
 				{
 					name: 'Hosting',
 					value: txt.ad_text
 				}
-			],
-			footer: 
-			{
-			  icon_url: txt.ad_img,
-			  text: txt.ad_title
-			}
-		}
+			)
+			.setFooter({
+				iconURL: txt.ad_img,
+				text: txt.ad_title
+			})
+		]
 	})
 })
 
@@ -110,15 +111,20 @@ command.linkCommand('leaderboard', msg => {
 		streakStr += `\`${('0' + (i + 1)).slice(-2)}.\` ${user.streak.toLocaleString()} ${pluralize('cat', user.streak)} - **${getMember(msg.guild, user.id).displayName}\n**`
 	}
 
-	let embed = new discord.RichEmbed()
-	.setAuthor('Catbox Leaderboard', 'https://cdn.discordapp.com/attachments/456889532227387405/538354324028260377/youwhat_hd.png')
+	let embed = new EmbedBuilder()
+	.setAuthor({
+		name: 'Catbox Leaderboard',
+		iconURL: 'https://media.discordapp.net/attachments/1467535812391473203/1467549353895002142/youwhat.png?ex=6980c957&is=697f77d7&hm=f27f8414a1627bb833827e2a1144b7445096b9cdec5aca45876a930585f2d362'
+	})
 	.setColor(cfg.embedcolor)
 	.setTimestamp()
-	.addField('10 Richest Users', richestStr)
-	.addBlankField()
-	.addField('5 Highest Catstreaks', streakStr)
+	.addFields(
+		{ name: '10 Richest Users', value: richestStr },
+		{ name: '\u200b', value: '\u200b' },
+		{ name: '5 Highest Catstreaks', value: streakStr }
+	)
 
-	msg.channel.send({embed})
+	msg.channel.send({ embeds: [embed] })
 })
 
 command.linkCommand('spawn', (msg, member, amount) => {
@@ -137,7 +143,7 @@ command.linkCommand('spawn', (msg, member, amount) => {
 
 command.linkCommand('give', (msg, member, amount) => {
 	let user = msg.member
-	
+
 	if (getBalance(user.id) < amount) { msg.channel.send(txt.err_no_cats); return }
 	if (amount <= 0) { msg.channel.send(txt.err_invalid_amt); return }
 
@@ -165,16 +171,16 @@ command.linkCommand('balance', (msg, member) => {
 command.linkCommand('maintenance', (msg, bool) => {
 	if (bool)
 	{
-		client.guilds.forEach(guild => {
-			guild.members.get(client.user.id).setNickname(client.user.username + ' (maintenance)')
+		bot.guilds.cache.forEach(guild => {
+			guild.members.cache.get(bot.user.id).setNickname(bot.user.username + ' (maintenance)')
 		})
 		msg.channel.send('Maintenance mode enabled.')
 		print('Maintenance mode enabled.')
 	}
 	else
 	{
-		client.guilds.forEach(guild => {
-			guild.members.get(client.user.id).setNickname(client.user.username)
+		bot.guilds.cache.forEach(guild => {
+			guild.members.cache.get(bot.user.id).setNickname(bot.user.username)
 		})
 		msg.channel.send('Maintenance mode disabled.')
 		print('Maintenance mode disabled.')
@@ -276,7 +282,7 @@ command.linkCommand('bet', (msg, amount) => {
 				total += betRound.players[ply] / betRound.total
 				if (total >= winNum && winner == undefined) { winner = ply }
 			})
-			msg.channel.send(`**${client.users.get(winner).username}** won ${betRound.total.toLocaleString()} ${pluralize('cat', betRound.total)} with a ${((betRound.players[winner] / betRound.total) * 100).toFixed(2)}% chance!`)
+			msg.channel.send(`**${bot.users.cache.get(winner).username}** won ${betRound.total.toLocaleString()} ${pluralize('cat', betRound.total)} with a ${((betRound.players[winner] / betRound.total) * 100).toFixed(2)}% chance!`)
 			changeBalance(winner, betRound.total)
 			betRound.inProgress = false; betRound.total = 0; betRound.players = {}
 		}, betRound.roundTime * 1000)
@@ -341,14 +347,14 @@ command.linkCommand('eval', (msg, code) => {
 })
 
 command.linkCommand('ping', msg => {
-	msg.channel.send(`Latency to Discord is ${Math.round(client.ping)}ms`)
+	msg.channel.send(`Latency to Discord is ${Math.round(bot.ws.ping)}ms`)
 	.then(m => m.edit(m.content + `, latency to catbox's server (${serverInfo.countryCode}) is ${m.createdTimestamp - msg.createdTimestamp}ms`))
 })
 
 command.linkCommand('meme', (msg, tag) => {
 	let id = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi.exec(tag)
 	let data = ''
-	msg.channel.startTyping()
+	msg.channel.sendTyping()
 	if (id == null) {
 		let args = JSON.stringify({Tag: (tag == null) ? 'short' : tag})
 		let options = {
@@ -360,7 +366,7 @@ command.linkCommand('meme', (msg, tag) => {
 				'Content-Length': Buffer.byteLength(args)
 			}
 		}
-		
+
 		let req = https.request(options, res => {
 			res.setEncoding('utf8')
 			res.on('data', x => data += x)
@@ -389,31 +395,37 @@ command.linkCommand('meme', (msg, tag) => {
 						const tag = data.Data.Tags[i].Tag;
 						tags += `${tag}, `
 					} tags += data.Data.Tags[data.Data.Tags.length - 1].Tag
-					let embed = new discord.RichEmbed()
-					.setAuthor(`${data.Data.Title} ${(data.Data.NSFW) ? '(NSFW)' : ''}`, null, `https://memes.fyi/v/${data.Data.Key}`)
+					let embed = new EmbedBuilder()
+					.setAuthor({
+						name: `${data.Data.Title} ${(data.Data.NSFW) ? '(NSFW)' : ''}`,
+						url: `https://memes.fyi/v/${data.Data.Key}`
+					})
 					.setColor(cfg.embedcolor)
 					.setImage(data.Data.Thumbnail)
-					.addField('Author', data.Data.Username, true)
-					.addField('Tags', tags, true)
-					.addField('Duration', `${('0' + Math.floor(data.Data.Duration / 60)).slice(-2)}:${('0' + data.Data.Duration % 60).slice(-2)}`, true)
-					.addField('Upload Date', data.Data.DateAdded, true)
-					.setFooter(`Viewed ${data.Data.Views} ${pluralize('time', data.Data.Views)}` +
-					`${(data.Data.DateApproved == null) ? ' | Not yet approved' : ''}`)
+					.addFields(
+						{ name: 'Author', value: data.Data.Username, inline: true },
+						{ name: 'Tags', value: tags, inline: true },
+						{ name: 'Duration', value: `${('0' + Math.floor(data.Data.Duration / 60)).slice(-2)}:${('0' + data.Data.Duration % 60).slice(-2)}`, inline: true },
+						{ name: 'Upload Date', value: data.Data.DateAdded, inline: true }
+					)
+					.setFooter({
+						text: `Viewed ${data.Data.Views} ${pluralize('time', data.Data.Views)}` +
+						`${(data.Data.DateApproved == null) ? ' | Not yet approved' : ''}`
+					})
 
 					if (data.Data.Source !== '') {
-						 embed.addField('Source', data.Data.Source)
+						 embed.addFields({ name: 'Source', value: data.Data.Source })
 					}
 
-					embed.addBlankField(false)
-		
-					msg.channel.send(embed)
+					embed.addFields({ name: '\u200b', value: '\u200b', inline: false })
+
+					msg.channel.send({ embeds: [embed] })
 				} else {
 					msg.channel.send(`${data.StatusMessage} (${data.Status})`)
 				}
 			})
 		}).on('error', err => msg.channel.send(txt.err_no_connection))
 	}
-	msg.channel.stopTyping()
 })
 
 command.linkCommand('snipe', (msg, option) => {
@@ -439,19 +451,21 @@ command.linkCommand('snipe', (msg, option) => {
 	}
 
 	if (curSnipeArray.length > 0) {
-		let embed = new discord.RichEmbed()
+		let embed = new EmbedBuilder()
 		.setColor(cfg.embedcolor)
-		.setAuthor('SNIPED! Here\'s a list of recently deleted messages.')
+		.setAuthor({ name: 'SNIPED! Here\'s a list of recently deleted messages.' })
 		.setTimestamp()
 		curSnipeArray.forEach(m => {
 			if (m != null) {
-				embed.addField(`(${m.createdAt.toString().substr(16, 8)}) ${m.member.displayName} in #${m.channel.name}`,
-				`${m.content}${m.edits.length > 1 ? ` \`(edited)\`\n**Original message:**\n${m.edits[m.edits.length - 1].content}`: ''}`
-				+`${m.attachments.size > 0 ? `\n**Attachment:** ${m.attachments.array()[0].proxyURL}` : ''}\n\`ID: ${m.id}\``)
+				embed.addFields({
+					name: `(${m.createdAt.toString().substr(16, 8)}) ${m.member.displayName} in #${m.channel.name}`,
+					value: `${m.content}${m.edits && m.edits.length > 1 ? ` \`(edited)\`\n**Original message:**\n${m.edits[m.edits.length - 1].content}`: ''}`
+					+`${m.attachments.size > 0 ? `\n**Attachment:** ${Array.from(m.attachments.values())[0].proxyURL}` : ''}\n\`ID: ${m.id}\``
+				})
 			}
 		})
 
-		msg.channel.send(embed)
+		msg.channel.send({ embeds: [embed] })
 	} else {
 		msg.channel.send("Whoops, I missed that.")
 	}
@@ -490,15 +504,16 @@ temp.odds = 0.5
 temp.deltaOdds = 0
 
 // Events
-client.on('clientReady', () => {
-	print(`Logged in as ${client.user.tag}!`)
-	print(`Currently serving ${client.guilds.size} servers and ${client.users.size} users.\n`)
-	client.user.setPresence({
-		game: 
-		{
-			name: cfg.activity,
-			type: cfg.activityType.toUpperCase()
-		}
+bot.on('clientReady', () => {
+	print(`Logged in as ${bot.user.tag}!`)
+	print(`Currently serving ${bot.guilds.cache.size} servers and ${bot.users.cache.size} users.\n`)
+	bot.user.setPresence({
+		activities: [
+			{
+				name: cfg.activity,
+				type: ActivityType[cfg.activityType.charAt(0).toUpperCase() + cfg.activityType.slice(1).toLowerCase()]
+			}
+		]
 	})
 
 	http.get(serverInfo, res => {
@@ -514,17 +529,17 @@ client.on('clientReady', () => {
 		})
 	}).on('error', err => print(txt.err_no_connection))
 
-	relay = client.channels.fetch(relay)
+	relay = bot.channels.cache.get(relay)
 })
 
-client.on('message', msg => {
+bot.on('messageCreate', msg => {
 	msg.content = msg.cleanContent
 
 	if ((msg.author.bot && !temp.bots) ||
 		(maintenance && msg.content !== `${cfg.prefix}maintenance false`)) { return }
 
 	if (temp.channels !== undefined) { if (temp.channels.includes(msg.channel.id)) { return } }
-	
+
 	if (temp.users.hasOwnProperty(msg.author.id)) { 
 		if (temp.users[msg.author.id] < 5) {
 			temp.users[msg.author.id] += 1
@@ -533,7 +548,7 @@ client.on('message', msg => {
 		temp.users[msg.author.id] = 1
 	}
 	file.writeFile('./data/temp.json', JSON.stringify(temp, null, 4), () => {})
-	
+
 	// Return if message is either from a bot or doesn't start with command prefix. Keep non-commands above this line.
 	if (msg.content.substring(0, cfg.prefix.length) !== cfg.prefix) { return }
 
@@ -589,17 +604,20 @@ function print(msg) {
 
 function generateRoundEmbed() {
 	let pList = ''
-	let embed = new discord.RichEmbed()
-	.setAuthor(`Betting Round - Total: ${betRound.total.toLocaleString()} ${pluralize('cat', betRound.total)}`, 'https://cdn.discordapp.com/attachments/456889532227387405/538354324028260377/youwhat_hd.png')
+	let embed = new EmbedBuilder()
+	.setAuthor({
+		name: `Betting Round - Total: ${betRound.total.toLocaleString()} ${pluralize('cat', betRound.total)}`,
+		iconURL: 'https://media.discordapp.net/attachments/1467535812391473203/1467549353895002142/youwhat.png?ex=6980c957&is=697f77d7&hm=f27f8414a1627bb833827e2a1144b7445096b9cdec5aca45876a930585f2d362'
+	})
 	.setColor(cfg.embedcolor)
 	Object.keys(betRound.players).forEach(ply => {
 		let curAmount = betRound.players[ply]
-		pList += `${curAmount.toLocaleString()} ${pluralize('cat', curAmount)} (${((curAmount / betRound.total) * 100).toFixed(2)}%) - **${client.users.get(ply).username}**\n`
+		pList += `${curAmount.toLocaleString()} ${pluralize('cat', curAmount)} (${((curAmount / betRound.total) * 100).toFixed(2)}%) - **${bot.users.cache.get(ply).username}**\n`
 	})
 	embed.setDescription(pList)
 	let timeLeft = Math.round(betRound.roundTime - (new Date().getTime() - betRound.startTime) / 1000)
-	embed.setFooter(`${timeLeft} seconds left.`)
-	if (timeLeft <= 0) {embed.setFooter('This round is over.')}
+	embed.setFooter({ text: `${timeLeft} seconds left.` })
+	if (timeLeft <= 0) {embed.setFooter({ text: 'This round is over.' })}
 	return embed
 }
 
@@ -609,8 +627,11 @@ function getGuessCheckCost() {
 
 function generateGuessRoundEmbed() {
 	let numList = `Maximum guess for this round: ${temp.guessRound.max}\n\nGuessed numbers: `
-	let embed = new discord.RichEmbed()
-	.setAuthor(`Guessing Round - Total: ${temp.guessRound.total} ${pluralize('cat', temp.guessRound.total)}`, 'https://cdn.discordapp.com/attachments/456889532227387405/538354324028260377/youwhat_hd.png')
+	let embed = new EmbedBuilder()
+	.setAuthor({
+		name: `Guessing Round - Total: ${temp.guessRound.total} ${pluralize('cat', temp.guessRound.total)}`,
+		iconURL: 'https://media.discordapp.net/attachments/1467535812391473203/1467549353895002142/youwhat.png?ex=6980c957&is=697f77d7&hm=f27f8414a1627bb833827e2a1144b7445096b9cdec5aca45876a930585f2d362'
+	})
 	.setColor(cfg.embedcolor)
 	if (temp.guessRound.guessed[0] !== undefined && temp.guessRound.guessed[0] !== null) {
 		let nums = temp.guessRound.guessed.sort((a, b) => a - b)
@@ -620,18 +641,18 @@ function generateGuessRoundEmbed() {
 		numList += nums[nums.length - 1]
 	} else { numList += 'none' }
 	embed.setDescription(numList)
-	.setFooter(`Guess check cost: ${getGuessCheckCost()}`)
+	.setFooter({ text: `Guess check cost: ${getGuessCheckCost()}` })
 	return embed
 }
 
 function getMember(guild, identifier) {
 	identifier = identifier.toLowerCase()
-	return guild.members.find(x => x.id === identifier || x.user.username.toLowerCase().includes(identifier) || x.displayName.toLowerCase().includes(identifier))
+	return guild.members.cache.find(x => x.id === identifier || x.user.username.toLowerCase().includes(identifier) || x.displayName.toLowerCase().includes(identifier))
 }
 
 function getChannel(guild, identifier) {
 	identifier = identifier.toLowerCase()
-	return guild.channels.find(x => x.type === 'text' && (x.id === identifier || x.name.toLowerCase().includes(identifier)))
+	return guild.channels.cache.find(x => x.type === 0 && (x.id === identifier || x.name.toLowerCase().includes(identifier)))
 }
 
 function saveHighscore(userID, streak) {
@@ -651,7 +672,7 @@ function saveHighscore(userID, streak) {
 
 function addUser(userID, balance, streak) {
 	data = require('./data/userdata.json')
-	
+
 	if (data.find(x => x.id === userID) == null) {
 		data.push({
 			id: userID,
@@ -679,7 +700,7 @@ function changeBalance(userID, amount, callback) {
 	}
 
 	saveData()
-	
+
 	if (callback !== undefined) {
 		callback()
 	}
@@ -719,4 +740,21 @@ function shuffleArray(a) {
 	return a
 }
 
-client.login(cfg.token)
+if (!cfg.token || cfg.token === 'YOUR TOKEN HERE') {
+	console.error('\nNo Discord bot token configured!')
+	process.exit(1)
+}
+
+bot.login(cfg.token).catch((error) => {
+	console.error('\nFailed to connect to Discord!')
+
+	if (error.message && error.message.includes('disallowed intents')) {
+		console.error('\nThis bot requires privileged intents to be enabled.')
+	} else if (error.message && error.message.includes('token')) {
+		console.error('\nThe bot\'s token appears to be invalid.')
+	} else {
+		console.error('Unknown error:', error.message || error)
+	}
+
+	process.exit(1)
+})

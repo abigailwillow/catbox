@@ -2,7 +2,7 @@ const { Client, GatewayIntentBits, EmbedBuilder, ActivityType } = require('disco
 const file = require('fs')
 const http = require('http')
 const https = require('https')
-const bot = new Client( {
+const client = new Client( {
         intents: [
                 GatewayIntentBits.Guilds,
                 GatewayIntentBits.GuildMessages,
@@ -55,13 +55,13 @@ command.linkCommand('about', msg => {
 			new EmbedBuilder()
 			.setColor(cfg.embedcolor)
 			.setAuthor({
-				name: `${bot.users.cache.get(cfg.author).username} and ${bot.users.cache.get(cfg.operators[1]).username}`,
-				iconURL: bot.users.cache.get(cfg.author).displayAvatarURL()
+				name: `${client.users.cache.get(cfg.author).username} and ${client.users.cache.get(cfg.operators[1]).username}`,
+				iconURL: client.users.cache.get(cfg.author).displayAvatarURL()
 			})
 			.addFields(
 				{
 					name: 'Author',
-					value: `${bot.user.username} was made by ${bot.users.cache.get(cfg.author).tag} and ${bot.users.cache.get(cfg.operators[1]).tag}.`
+					value: `${client.user.username} was made by ${client.users.cache.get(cfg.author).tag} and ${client.users.cache.get(cfg.operators[1]).tag}.`
 				},
 				{
 					name: 'Hosting',
@@ -171,16 +171,16 @@ command.linkCommand('balance', (msg, member) => {
 command.linkCommand('maintenance', (msg, bool) => {
 	if (bool)
 	{
-		bot.guilds.cache.forEach(guild => {
-			guild.members.cache.get(bot.user.id).setNickname(bot.user.username + ' (maintenance)')
+		client.guilds.cache.forEach(guild => {
+			guild.members.cache.get(client.user.id).setNickname(client.user.username + ' (maintenance)')
 		})
 		msg.channel.send('Maintenance mode enabled.')
 		print('Maintenance mode enabled.')
 	}
 	else
 	{
-		bot.guilds.cache.forEach(guild => {
-			guild.members.cache.get(bot.user.id).setNickname(bot.user.username)
+		client.guilds.cache.forEach(guild => {
+			guild.members.cache.get(client.user.id).setNickname(client.user.username)
 		})
 		msg.channel.send('Maintenance mode disabled.')
 		print('Maintenance mode disabled.')
@@ -282,7 +282,7 @@ command.linkCommand('bet', (msg, amount) => {
 				total += betRound.players[ply] / betRound.total
 				if (total >= winNum && winner == undefined) { winner = ply }
 			})
-			msg.channel.send(`**${bot.users.cache.get(winner).username}** won ${betRound.total.toLocaleString()} ${pluralize('cat', betRound.total)} with a ${((betRound.players[winner] / betRound.total) * 100).toFixed(2)}% chance!`)
+			msg.channel.send(`**${client.users.cache.get(winner).username}** won ${betRound.total.toLocaleString()} ${pluralize('cat', betRound.total)} with a ${((betRound.players[winner] / betRound.total) * 100).toFixed(2)}% chance!`)
 			changeBalance(winner, betRound.total)
 			betRound.inProgress = false; betRound.total = 0; betRound.players = {}
 		}, betRound.roundTime * 1000)
@@ -347,7 +347,7 @@ command.linkCommand('eval', (msg, code) => {
 })
 
 command.linkCommand('ping', msg => {
-	msg.channel.send(`Latency to Discord is ${Math.round(bot.ws.ping)}ms`)
+	msg.channel.send(`Latency to Discord is ${Math.round(client.ws.ping)}ms`)
 	.then(m => m.edit(m.content + `, latency to catbox's server (${serverInfo.countryCode}) is ${m.createdTimestamp - msg.createdTimestamp}ms`))
 })
 
@@ -504,10 +504,10 @@ temp.odds = 0.5
 temp.deltaOdds = 0
 
 // Events
-bot.on('clientReady', () => {
-	print(`Logged in as ${bot.user.tag}!`)
-	print(`Currently serving ${bot.guilds.cache.size} servers and ${bot.users.cache.size} users.\n`)
-	bot.user.setPresence({
+client.on('clientReady', () => {
+	print(`Logged in as ${client.user.tag}!`)
+	print(`Currently serving ${client.guilds.cache.size} servers and ${client.users.cache.size} users.\n`)
+	client.user.setPresence({
 		activities: [
 			{
 				name: cfg.activity,
@@ -529,10 +529,10 @@ bot.on('clientReady', () => {
 		})
 	}).on('error', err => print(txt.err_no_connection))
 
-	relay = bot.channels.cache.get(relay)
+	relay = client.channels.cache.get(relay)
 })
 
-bot.on('messageCreate', msg => {
+client.on('messageCreate', msg => {
 	msg.content = msg.cleanContent
 
 	if ((msg.author.bot && !temp.bots) ||
@@ -612,7 +612,7 @@ function generateRoundEmbed() {
 	.setColor(cfg.embedcolor)
 	Object.keys(betRound.players).forEach(ply => {
 		let curAmount = betRound.players[ply]
-		pList += `${curAmount.toLocaleString()} ${pluralize('cat', curAmount)} (${((curAmount / betRound.total) * 100).toFixed(2)}%) - **${bot.users.cache.get(ply).username}**\n`
+		pList += `${curAmount.toLocaleString()} ${pluralize('cat', curAmount)} (${((curAmount / betRound.total) * 100).toFixed(2)}%) - **${client.users.cache.get(ply).username}**\n`
 	})
 	embed.setDescription(pList)
 	let timeLeft = Math.round(betRound.roundTime - (new Date().getTime() - betRound.startTime) / 1000)
@@ -745,7 +745,7 @@ if (!cfg.token || cfg.token === 'YOUR TOKEN HERE') {
 	process.exit(1)
 }
 
-bot.login(cfg.token).catch((error) => {
+client.login(cfg.token).catch((error) => {
 	console.error('\nFailed to connect to Discord!')
 
 	if (error.message && error.message.includes('disallowed intents')) {

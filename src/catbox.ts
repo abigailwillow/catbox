@@ -1,5 +1,5 @@
 import consoleStamp from 'console-stamp';
-import { ActivityType, Client, GatewayIntentBits } from 'discord.js';
+import { Client, GatewayIntentBits } from 'discord.js';
 import pluralize from 'pluralize';
 import config from '../config/config.json';
 import { handle } from './utilities/commandHandler';
@@ -14,10 +14,10 @@ const client = new Client( {
         ]
 });
 
-client.once('clientReady', () => {
+client.once('clientReady', client => {
     console.log(`Logged in as ${client.user.tag}!`)
     console.log(`Currently serving ${pluralize('guild', client.guilds.cache.size, true)} and ${pluralize('user', client.users.cache.size, true)}.\n`)
-    client.user.setPresence({ status: 'online', activities: [{ name: config.activity, type: ActivityType[config.activityType] }] });
+    client.user.setPresence({ status: 'online', activities: [{ name: config.activity }] });
     process.env.MAINTENANCE = 'false';
 });
 

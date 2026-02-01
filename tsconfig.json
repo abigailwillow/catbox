@@ -4,5 +4,6 @@
     "target": "esnext",
     "module": "nodenext",
     "sourceMap": true,
+    "strict": true
   }
 }

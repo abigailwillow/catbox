@@ -1,3 +1,10 @@
+import { EmbedBuilder } from 'discord.js';
+import config from '../../config/config.json';
+
+export async function handle (interaction) {
+    const author = await interaction.client.users.fetch(config.author);
+    const operator = await interaction.client.users.fetch(config.operators[1]);
+}
 
 command.linkCommand('about', msg => {
     client.users.fetch(config.author).then(author => {

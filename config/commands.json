@@ -4,7 +4,7 @@
 		"description": "You are here now",
 		"category": "General",
 		"arguments": [],
-		"permissions": [],
+		"administrator": false,
 		"operator": false
 	},
 	{
@@ -12,7 +12,7 @@
 		"description": "Display general information about Catbox",
 		"arguments": [],
 		"category": "General",
-		"permissions": [],
+		"administrator": false,
 		"operator": false
 	},
 	{
@@ -20,7 +20,7 @@
 		"description": "Toggle maintenance mode",
 		"category": "Debug",
 		"arguments": [],
-		"permissions": [],
+		"administrator": false,
 		"operator": true
 	},
 	{
@@ -41,7 +41,7 @@
 				"required": true
 			}
 		],
-		"permissions": ["ADMINISTRATOR"],
+		"administrator": true,
 		"operator": false
 	},
 	{
@@ -63,7 +63,7 @@
 				"required": false
 			}
 		],
-		"permissions": ["ADMINISTRATOR"],
+		"administrator": true,
 		"operator": false
 	},
 	{
@@ -71,7 +71,7 @@
 		"description": "Check Catbox's current latency.",
 		"arguments": [],
 		"category": "General",
-		"permissions": [],
+		"administrator": false,
 		"operator": false
 	},
 	{
@@ -86,7 +86,7 @@
 				"required": false
 			}
 		],
-		"permissions": ["ADMINISTRATOR"],
+		"administrator": true,
 		"operator": false
 	},
 	{
@@ -143,7 +143,7 @@
 				"required": false
 			}
 		],
-		"permissions": [],
+		"administrator": false,
 		"operator": false
 	},
 	{
@@ -152,7 +152,7 @@
 		"description": "Show the top catters.",
 		"category": "General",
 		"arguments": [],
-		"permissions": [],
+		"administrator": false,
 		"operator": false
 	},
 	{
@@ -168,7 +168,7 @@
 				"required": false
 			}
 		],
-		"permissions": [],
+		"administrator": false,
 		"operator": false
 	},
 	{
@@ -189,7 +189,7 @@
 				"required": true
 			}
 		],
-		"permissions": [],
+		"administrator": false,
 		"operator": true
 	},
 	{
@@ -210,7 +210,7 @@
 				"required": true
 			}
 		],
-		"permissions": [],
+		"administrator": false,
 		"operator": false
 	},
 	{
@@ -225,7 +225,7 @@
 				"required": true
 			}
 		],
-		"permissions": [],
+		"administrator": false,
 		"operator": false
 	},
 	{
@@ -240,7 +240,7 @@
 				"required": false
 			}
 		],
-		"permissions": [],
+		"administrator": false,
 		"operator": false
 	},
 	{
@@ -255,7 +255,7 @@
 				"required": true
 			}
 		],
-		"permissions": [],
+		"administrator": false,
 		"operator": false
 	},
 	{
@@ -270,7 +270,7 @@
 				"required": true
 			}
 		],
-		"permissions": [],
+		"administrator": false,
 		"operator": true
 	},
 	{
@@ -285,7 +285,7 @@
 				"required": false
 			}
 		],
-		"permissions": [],
+		"administrator": false,
 		"operator": false
 	}
 ]

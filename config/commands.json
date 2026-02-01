@@ -90,63 +90,6 @@
 		"operator": false
 	},
 	{
-		"name": "timestamp",
-		"description": "Generate a timestamp based on the given date and time",
-		"category": "General",
-		"arguments": [
-			{
-				"name": "year",
-				"type": "integer",
-				"description": "Defaults to the current year in UTC time",
-				"required": false
-			},
-			{
-				"name": "month",
-				"type": "integer",
-				"description": "Defaults to the current month in UTC time",
-				"required": false
-			},
-			{
-				"name": "day",
-				"type": "integer",
-				"description": "Defaults to the current day in UTC time",
-				"required": false
-			},
-			{
-				"name": "hour",
-				"type": "integer",
-				"description": "Defaults to the current hour in UTC time",
-				"required": false
-			},
-			{
-				"name": "minute",
-				"type": "integer",
-				"description": "Defaults to the current minute in UTC time",
-				"required": false
-			},
-			{
-				"name": "timezone",
-				"type": "string",
-				"description": "Defaults to UTC (UTC-1, UTC, UTC+1, etc.)",
-				"required": false
-			},
-			{
-				"name": "format",
-				"type": "string",
-				"description": "(short/long)-time, (short/long)-date, (short/long)-date-time, or relative (default: short-date-time)",
-				"required": false
-			},
-			{
-				"name": "message",
-				"type": "string",
-				"description": "Include a message with your timestamp so others know what it's for",
-				"required": false
-			}
-		],
-		"administrator": false,
-		"operator": false
-	},
-	{
 		"name": "leaderboard",
 		"alias": "lb",
 		"description": "Show the top catters.",

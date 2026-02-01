@@ -1,11 +1,10 @@
-import { CommandInteraction } from 'discord.js';
 import file from 'fs';
 import path from 'path';
 import commands from '../../config/commands.json';
 import config from '../../config/config.json';
 import localization from '../../resources/localization.json';
 
-export function handle(interaction: CommandInteraction) {
+export function handle(interaction) {
     const commandFile = path.join(__dirname, 'commands', interaction.commandName + '.ts');
     if (file.existsSync(commandFile)) {
         try {

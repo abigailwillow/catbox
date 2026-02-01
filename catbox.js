@@ -1,8 +1,14 @@
-const discord 	= require('discord.js')
-const file		= require('fs')
-const http		= require('http')
-const https		= require('https')
-const bot 		= new discord.Client()
+const { Client, GatewayIntentBits } = require('discord.js');
+const file = require('fs')
+const http = require('http')
+const https	= require('https')
+const client = new Client( {
+	intents: [
+		GatewayIntentBits.Guilds,
+		GatewayIntentBits.GuildMessages,
+		GatewayIntentBits.MessageContent,
+	]
+});
 const cfg 		= require('./cfg/config.json')
 const cmds 		= require('./cfg/commands.json')
 const txt		= require('./res/strings.json')
@@ -12,10 +18,10 @@ let temp		= require('./data/temp.json')
 let maintenance = false
 let betRound	= { roundTime: 30, roundInterval: 5, inProgress: false, total: 0, players: {} }
 let serverInfo	= 'http://ip-api.com/json/?fields=17411'
-let relay		= '546410870146727949'
+let relay		= '1467536724061327592'
 let snipeArray 	= {}
 
-command.init(bot, cmds)
+command.init(client, cmds)
 
 command.linkCommand('help', msg => {
 	let categories = []
@@ -46,14 +52,14 @@ command.linkCommand('about', msg => {
 			color: cfg.embedcolor,
 			author:
 			{
-				name: `${bot.users.get(cfg.author).username} and ${bot.users.get(cfg.operators[1]).username}`,
-				icon_url: bot.users.get(cfg.author).avatarURL
+				name: `${client.users.get(cfg.author).username} and ${client.users.get(cfg.operators[1]).username}`,
+				icon_url: client.users.get(cfg.author).avatarURL
 			},
 			fields: 
 			[
 				{
 					name: 'Author',
-					value: `${bot.user.username} was made by ${bot.users.get(cfg.author).tag} and ${bot.users.get(cfg.operators[1]).tag}.`
+					value: `${client.user.username} was made by ${client.users.get(cfg.author).tag} and ${client.users.get(cfg.operators[1]).tag}.`
 				},
 				{
 					name: 'Hosting',
@@ -159,16 +165,16 @@ command.linkCommand('balance', (msg, member) => {
 command.linkCommand('maintenance', (msg, bool) => {
 	if (bool)
 	{
-		bot.guilds.forEach(guild => {
-			guild.members.get(bot.user.id).setNickname(bot.user.username + ' (maintenance)')
+		client.guilds.forEach(guild => {
+			guild.members.get(client.user.id).setNickname(client.user.username + ' (maintenance)')
 		})
 		msg.channel.send('Maintenance mode enabled.')
 		print('Maintenance mode enabled.')
 	}
 	else
 	{
-		bot.guilds.forEach(guild => {
-			guild.members.get(bot.user.id).setNickname(bot.user.username)
+		client.guilds.forEach(guild => {
+			guild.members.get(client.user.id).setNickname(client.user.username)
 		})
 		msg.channel.send('Maintenance mode disabled.')
 		print('Maintenance mode disabled.')
@@ -270,7 +276,7 @@ command.linkCommand('bet', (msg, amount) => {
 				total += betRound.players[ply] / betRound.total
 				if (total >= winNum && winner == undefined) { winner = ply }
 			})
-			msg.channel.send(`**${bot.users.get(winner).username}** won ${betRound.total.toLocaleString()} ${pluralize('cat', betRound.total)} with a ${((betRound.players[winner] / betRound.total) * 100).toFixed(2)}% chance!`)
+			msg.channel.send(`**${client.users.get(winner).username}** won ${betRound.total.toLocaleString()} ${pluralize('cat', betRound.total)} with a ${((betRound.players[winner] / betRound.total) * 100).toFixed(2)}% chance!`)
 			changeBalance(winner, betRound.total)
 			betRound.inProgress = false; betRound.total = 0; betRound.players = {}
 		}, betRound.roundTime * 1000)
@@ -335,7 +341,7 @@ command.linkCommand('eval', (msg, code) => {
 })
 
 command.linkCommand('ping', msg => {
-	msg.channel.send(`Latency to Discord is ${Math.round(bot.ping)}ms`)
+	msg.channel.send(`Latency to Discord is ${Math.round(client.ping)}ms`)
 	.then(m => m.edit(m.content + `, latency to catbox's server (${serverInfo.countryCode}) is ${m.createdTimestamp - msg.createdTimestamp}ms`))
 })
 
@@ -484,10 +490,10 @@ temp.odds = 0.5
 temp.deltaOdds = 0
 
 // Events
-bot.on('ready', () => {
-	print(`Logged in as ${bot.user.tag}!`)
-	print(`Currently serving ${bot.guilds.size} servers and ${bot.users.size} users.\n`)
-	bot.user.setPresence({
+client.on('clientReady', () => {
+	print(`Logged in as ${client.user.tag}!`)
+	print(`Currently serving ${client.guilds.size} servers and ${client.users.size} users.\n`)
+	client.user.setPresence({
 		game: 
 		{
 			name: cfg.activity,
@@ -508,10 +514,10 @@ bot.on('ready', () => {
 		})
 	}).on('error', err => print(txt.err_no_connection))
 
-	relay = bot.channels.get(relay)
+	relay = client.channels.fetch(relay)
 })
 
-bot.on('message', msg => {
+client.on('message', msg => {
 	msg.content = msg.cleanContent
 
 	if ((msg.author.bot && !temp.bots) ||
@@ -564,7 +570,7 @@ bot.on('message', msg => {
 	}
 })
 
-bot.on('messageDelete', msg => {
+client.on('messageDelete', msg => {
 	if (!snipeArray.hasOwnProperty(msg.guild.id)) {
 		snipeArray[msg.guild.id] = []
 	}
@@ -588,7 +594,7 @@ function generateRoundEmbed() {
 	.setColor(cfg.embedcolor)
 	Object.keys(betRound.players).forEach(ply => {
 		let curAmount = betRound.players[ply]
-		pList += `${curAmount.toLocaleString()} ${pluralize('cat', curAmount)} (${((curAmount / betRound.total) * 100).toFixed(2)}%) - **${bot.users.get(ply).username}**\n`
+		pList += `${curAmount.toLocaleString()} ${pluralize('cat', curAmount)} (${((curAmount / betRound.total) * 100).toFixed(2)}%) - **${client.users.get(ply).username}**\n`
 	})
 	embed.setDescription(pList)
 	let timeLeft = Math.round(betRound.roundTime - (new Date().getTime() - betRound.startTime) / 1000)
@@ -713,4 +719,4 @@ function shuffleArray(a) {
 	return a
 }
 
-bot.login(cfg.token)
+client.login(cfg.token)

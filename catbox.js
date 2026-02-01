@@ -1,7 +1,6 @@
 const { Client, GatewayIntentBits, EmbedBuilder, ActivityType } = require('discord.js');
 const file = require('fs')
 const http = require('http')
-const https = require('https')
 const pluralize = require('pluralize')
 const client = new Client( {
         intents: [
@@ -392,7 +391,7 @@ command.linkCommand('snipe', (msg, option) => {
     }
 })
 
-command.linkCommand('joindate', (msg, user) => {
+command.linkCommand('userinfo', (msg, user) => {
     let member = getMember(msg.guild, user)
 
     if (member != null) {

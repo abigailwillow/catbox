@@ -1,0 +1,291 @@
+[
+	{
+		"name": "help",
+		"description": "You are here now",
+		"category": "General",
+		"arguments": [],
+		"permissions": [],
+		"operator": false
+	},
+	{
+		"name": "about",
+		"description": "Display general information about Catbox",
+		"arguments": [],
+		"category": "General",
+		"permissions": [],
+		"operator": false
+	},
+	{
+		"name": "maintenance",
+		"description": "Toggle maintenance mode",
+		"category": "Debug",
+		"arguments": [],
+		"permissions": [],
+		"operator": true
+	},
+	{
+		"name": "say",
+		"description": "Make Catbox say something in a specified text channel.",
+		"category": "Admin",
+		"arguments": [
+			{
+				"name": "channel",
+				"type": "channel",
+				"description": "The channel to send the message in",
+				"required": true
+			},
+			{
+				"name": "message",
+				"type": "string",
+				"description": "The message to send",
+				"required": true
+			}
+		],
+		"permissions": ["ADMINISTRATOR"],
+		"operator": false
+	},
+	{
+		"name": "config",
+		"alias": "cfg",
+		"description": "Customise attributes of the Catbox on the fly",
+		"category": "Admin",
+		"arguments": [
+			{
+				"name": "attribute",
+				"type": "string",
+				"description": "The configuration attribute to change",
+				"required": true
+			},
+			{
+				"name": "value",
+				"type": "string",
+				"description": "The new value for the attribute",
+				"required": false
+			}
+		],
+		"permissions": ["ADMINISTRATOR"],
+		"operator": false
+	},
+	{
+		"name": "ping",
+		"description": "Check Catbox's current latency.",
+		"arguments": [],
+		"category": "General",
+		"permissions": [],
+		"operator": false
+	},
+	{
+		"name": "userinfo",
+		"description": "Check a user's info",
+		"category": "Admin",
+		"arguments": [
+			{
+				"name": "user",
+				"type": "mentionable",
+				"description": "The user to retrieve info for",
+				"required": false
+			}
+		],
+		"permissions": ["ADMINISTRATOR"],
+		"operator": false
+	},
+	{
+		"name": "timestamp",
+		"description": "Generate a timestamp based on the given date and time",
+		"category": "General",
+		"arguments": [
+			{
+				"name": "year",
+				"type": "integer",
+				"description": "Defaults to the current year in UTC time",
+				"required": false
+			},
+			{
+				"name": "month",
+				"type": "integer",
+				"description": "Defaults to the current month in UTC time",
+				"required": false
+			},
+			{
+				"name": "day",
+				"type": "integer",
+				"description": "Defaults to the current day in UTC time",
+				"required": false
+			},
+			{
+				"name": "hour",
+				"type": "integer",
+				"description": "Defaults to the current hour in UTC time",
+				"required": false
+			},
+			{
+				"name": "minute",
+				"type": "integer",
+				"description": "Defaults to the current minute in UTC time",
+				"required": false
+			},
+			{
+				"name": "timezone",
+				"type": "string",
+				"description": "Defaults to UTC (UTC-1, UTC, UTC+1, etc.)",
+				"required": false
+			},
+			{
+				"name": "format",
+				"type": "string",
+				"description": "(short/long)-time, (short/long)-date, (short/long)-date-time, or relative (default: short-date-time)",
+				"required": false
+			},
+			{
+				"name": "message",
+				"type": "string",
+				"description": "Include a message with your timestamp so others know what it's for",
+				"required": false
+			}
+		],
+		"permissions": [],
+		"operator": false
+	},
+	{
+		"name": "leaderboard",
+		"alias": "lb",
+		"description": "Show the top catters.",
+		"category": "General",
+		"arguments": [],
+		"permissions": [],
+		"operator": false
+	},
+	{
+		"name": "balance",
+		"alias": "bal",
+		"description": "Shows how many cats you have.",
+		"category": "General",
+		"arguments": [
+			{
+				"name": "member",
+				"type": "mentionable",
+				"description": "The member to check the balance of",
+				"required": false
+			}
+		],
+		"permissions": [],
+		"operator": false
+	},
+	{
+		"name": "spawn",
+		"description": "Spawns cats out of thin air.",
+		"category": "Debug",
+		"arguments": [
+			{
+				"name": "member",
+				"type": "mentionable",
+				"description": "The member to spawn cats for",
+				"required": true
+			},
+			{
+				"name": "number",
+				"type": "integer",
+				"description": "The number of cats to spawn",
+				"required": true
+			}
+		],
+		"permissions": [],
+		"operator": true
+	},
+	{
+		"name": "give",
+		"description": "Give cats to another users",
+		"category": "General",
+		"arguments": [
+			{
+				"name": "member",
+				"type": "mentionable",
+				"description": "The member to give cats to",
+				"required": true
+			},
+			{
+				"name": "number",
+				"type": "integer",
+				"description": "The number of cats to give",
+				"required": true
+			}
+		],
+		"permissions": [],
+		"operator": false
+	},
+	{
+		"name": "bet",
+		"description": "Start a new betting round or join an existing one",
+		"category": "Entertainment",
+		"arguments": [
+			{
+				"name": "amount",
+				"type": "integer",
+				"description": "The amount of cats to bet",
+				"required": true
+			}
+		],
+		"permissions": [],
+		"operator": false
+	},
+	{
+		"name": "guess",
+		"description": "Start a new guessing round or join an existing one, the user with the closest guess wins",
+		"category": "Entertainment",
+		"arguments": [
+			{
+				"name": "number",
+				"type": "integer",
+				"description": "Your guess number",
+				"required": false
+			}
+		],
+		"permissions": [],
+		"operator": false
+	},
+	{
+		"name": "check",
+		"description": "Check how far off your guess is from the actual guess number",
+		"category": "Entertainment",
+		"arguments": [
+			{
+				"name": "number",
+				"type": "integer",
+				"description": "The number to check",
+				"required": true
+			}
+		],
+		"permissions": [],
+		"operator": false
+	},
+	{
+		"name": "eval",
+		"description": "Run a piece of code via chat.",
+		"category": "Debug",
+		"arguments": [
+			{
+				"name": "code",
+				"type": "string",
+				"description": "The code to run",
+				"required": true
+			}
+		],
+		"permissions": [],
+		"operator": true
+	},
+	{
+		"name": "snipe",
+		"description": "Snipe recently deleted messages.",
+		"category": "Admin",
+		"arguments": [
+			{
+				"name": "string",
+				"type": "string",
+				"description": "Optional argument",
+				"required": false
+			}
+		],
+		"permissions": [],
+		"operator": false
+	}
+]

@@ -1,0 +1,18 @@
+{
+	"error": {
+		"not_admin": "You need to be an administrator to use this command.",
+		"not_operator": "You need to be an opurrator to use this command.",
+		"invalid_command": "Unknown command, type /help for a full list of commands.",
+		"invalid_argument": "Invalid argument, expected a ",
+		"invalid_channel": "Could not find that channel.",
+		"invalid_user": "Could not find that user.",
+		"no_cats": "You don't have enough cats to do that.",
+		"invalid_amount": "Invalid amount of cats.",
+		"no_everyone": "You can't target everyone.",
+		"no_connection": "HTTP request could not be completed. Is server offline?",
+		"no_permission": "Sorry, you don't have permission to do that"
+	},
+	"warning": {
+		"cooldown": "Please wait a bit between using commands."
+	}
+}

@@ -1,11 +1,20 @@
-*.bat
-config.json
-/data
+# NodeJS
 /node_modules
 /.direnv
 package-lock.json
+
+# TypeScript
+/dist
+
+# Data and Configuration
+config.json
+/data
+/backups
 
 # Nix flake files
 flake.nix
 flake.lock
 .envrc
+
+# Editors
+/.vscode

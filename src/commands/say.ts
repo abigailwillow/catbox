@@ -1,7 +1,7 @@
 import { ChannelType, ChatInputCommandInteraction, TextChannel } from 'discord.js';
 import localization from '../../resources/localization.json';
 
-export default function handle(interaction: ChatInputCommandInteraction) {
+export default function (interaction: ChatInputCommandInteraction) {
     const channel = interaction.options.getChannel('channel');
     const message = interaction.options.getString('message');
 

@@ -1,4 +1,9 @@
-command.linkCommand('ping', msg => {
-    msg.channel.send(`Latency to Discord is ${Math.round(client.ws.ping)}ms`)
-    .then(m => m.edit(m.content + `, latency to Catbox's server (${serverInfo.countryCode}) is ${m.createdTimestamp - msg.createdTimestamp}ms`))
-})
+import { CommandInteraction } from "discord.js";
+
+export default function handle(interaction: CommandInteraction) {
+	interaction.reply(`Latency to Discord is ${Math.round(interaction.client.ws.ping)}ms`);
+    interaction.fetchReply().then(reply => {
+        const latency = new Date(reply.createdTimestamp).getTime() - interaction.createdTimestamp;
+        interaction.editReply(reply.content + `, latency to Catbox's server is ${latency}ms`);
+    });
+};

@@ -1,8 +1,9 @@
 {
 	"token": "--> [PASTE YOUR TOKEN HERE] <--",
+	"name": "Catbox",
 	"applicationId": "1467528148567724205",
 	"activityType": "playing",
-	"activity": "type /help for info.",
+	"activity": "Type /help for info.",
 	"logFormat": ":date(yyyy-mm-dd HH:MM:ss.l) :label",
 	"author": "820761886735335435",
 	"operators": ["820761886735335435", "268473799215808513"],

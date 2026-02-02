@@ -19,6 +19,6 @@ Thanks to everyone who helped me with this project, especially
 - [KrypteK](https://github.com/KrispyteK) for coding several major features.
 - [Lizreu](https://github.com/Lizreu) for checking my code and updating features several years later.
 - [Vioxtar](https://github.com/Vioxtar) for testing and suggesting many features.
-- [Sikerow](https://github.com/Sikerow) for being overly addicted to catbox.
+- [Sikerow](https://github.com/Sikerow) for being overly addicted to Catbox.
 - [Octo](https://github.com/OctothorpeObelus) and [Classic](https://github.com/BartNixon) for help with designing.
 - [Kieran](https://github.com/andyz1) for cats and memes.

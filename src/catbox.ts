@@ -17,6 +17,7 @@ const client = new Client( {
 client.once('clientReady', client => {
     console.log(`Logged in as ${client.user.tag}!`)
     console.log(`Currently serving ${pluralize('guild', client.guilds.cache.size, true)} and ${pluralize('user', client.users.cache.size, true)}.\n`)
+    client.user.setUsername(config.name);
     client.user.setPresence({ status: 'online', activities: [{ name: config.activity }] });
     process.env.MAINTENANCE = 'false';
 });

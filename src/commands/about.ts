@@ -5,7 +5,7 @@ export async function handle (interaction: ChatInputCommandInteraction) {
     const author = await interaction.client.users.fetch(config.author);
     const operator = await interaction.client.users.fetch(config.operators[1]);
     let embed = new EmbedBuilder()
-        .setTitle('About Catbox')
+        .setTitle(`About ${config.name}`)
         .setURL('https://github.com/abigailwillow/catbox')
         .setColor(config.embedColor)
         .setAuthor({

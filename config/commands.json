@@ -25,7 +25,7 @@
 	},
 	{
 		"name": "say",
-		"description": "Make Catbox say something in a specified text channel.",
+		"description": "Make the bot say something in a specified text channel.",
 		"category": "Admin",
 		"arguments": [
 			{
@@ -46,7 +46,7 @@
 	},
 	{
 		"name": "ping",
-		"description": "Check Catbox's current latency.",
+		"description": "Check current latency",
 		"arguments": [],
 		"category": "General",
 		"administrator": false,
@@ -79,7 +79,7 @@
 	{
 		"name": "balance",
 		"alias": "bal",
-		"description": "Shows how many cats you have.",
+		"description": "Shows how many cats you have",
 		"category": "General",
 		"arguments": [
 			{
@@ -94,7 +94,7 @@
 	},
 	{
 		"name": "spawn",
-		"description": "Spawns cats out of thin air.",
+		"description": "Spawns cats out of thin air",
 		"category": "Debug",
 		"arguments": [
 			{
@@ -196,7 +196,7 @@
 	},
 	{
 		"name": "snipe",
-		"description": "Snipe recently deleted messages.",
+		"description": "Snipe recently deleted messages",
 		"category": "Admin",
 		"arguments": [
 			{

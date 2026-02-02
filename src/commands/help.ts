@@ -4,7 +4,7 @@ import config from '../../config/config.json';
 
 export default function handle(interaction: ChatInputCommandInteraction) {
     let embed = new EmbedBuilder()
-    .setAuthor({ name: 'Catbox\'s Commands', iconURL: interaction.client.user.avatarURL({ size: 32 }) ?? undefined })
+    .setAuthor({ name: `${config.name}'s Commands`, iconURL: interaction.client.user.avatarURL({ size: 32 }) ?? undefined })
     .setColor(config.embedColor);
 
     let categories: string[] = [];

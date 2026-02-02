@@ -9,7 +9,6 @@ interface BetRound {
     total: number;
     players: { [key: string]: number };
     roundTime: number;
-    roundInterval: number;
     startTime: number;
 }
 
@@ -18,7 +17,6 @@ const betRound: BetRound = {
     total: 0,
     players: {},
     roundTime: 30,
-    roundInterval: 5,
     startTime: 0
 };
 
@@ -53,14 +51,10 @@ export default function (interaction: ChatInputCommandInteraction) {
         interaction.reply(`**${user.username}** just started a betting round with ${pluralize('cat', amount, true)}! You have ${betRound.roundTime} seconds to join in!`);
         interaction.fetchReply().then(msg => {
             if (interaction.channel && interaction.channel instanceof TextChannel) {
-                interaction.channel.send({ embeds: [generateRoundEmbed(interaction.client)] }).then(roundMsg => {
-                    const IID = setInterval(() => { 
-                        roundMsg.edit({ embeds: [generateRoundEmbed(interaction.client)] });
-                    }, betRound.roundInterval * 1000);
-                    
+                const endTime = Math.floor((betRound.startTime + betRound.roundTime * 1000) / 1000);
+                interaction.channel.send({ content: `Ends <t:${endTime}:R>`, embeds: [generateRoundEmbed(interaction.client)] }).then(roundMsg => {
                     setTimeout(() => {
-                        clearInterval(IID);
-                        roundMsg.edit({ embeds: [generateRoundEmbed(interaction.client)] });
+                        roundMsg.edit({ content: 'This round is over.', embeds: [generateRoundEmbed(interaction.client, true)] });
 
                         let winner: string | undefined = undefined;
                         let winNum = Math.random();
@@ -90,7 +84,7 @@ export default function (interaction: ChatInputCommandInteraction) {
     }
 }
 
-function generateRoundEmbed(client: Client): EmbedBuilder {
+function generateRoundEmbed(client: Client, isEnded: boolean = false): EmbedBuilder {
     let pList = '';
     const embed = new EmbedBuilder()
         .setAuthor({
@@ -106,8 +100,6 @@ function generateRoundEmbed(client: Client): EmbedBuilder {
     });
     
     embed.setDescription(pList);
-    const timeLeft = Math.round(betRound.roundTime - (new Date().getTime() - betRound.startTime) / 1000);
-    embed.setFooter({ text: timeLeft > 0 ? `${timeLeft} seconds left.` : 'This round is over.' });
     
     return embed;
 }

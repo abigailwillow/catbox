@@ -1,7 +1,18 @@
-function addUser(userID, balance, streak) {
-    data = require('./data/userdata.json')
+import * as fs from 'fs';
+import { getDataPath } from './initData';
 
-    if (data.find(x => x.id === userID) == null) {
+interface UserData {
+    id: string;
+    balance: number;
+    streak: number;
+}
+
+let data: UserData[] = [];
+
+export function addUser(userID: string, balance?: number, streak?: number): void {
+    data = JSON.parse(fs.readFileSync(getDataPath('userdata.json'), 'utf-8'))
+
+    if (data.find((x: UserData) => x.id === userID) == null) {
         data.push({
             id: userID,
             balance: (balance == null) ? 0 : balance,
@@ -12,16 +23,16 @@ function addUser(userID, balance, streak) {
     }
 }
 
-function saveData() {
-    file.writeFile('./data/userdata.json', JSON.stringify(data, null, 4), () => {})
+export function saveData(): void {
+    fs.writeFileSync(getDataPath('userdata.json'), JSON.stringify(data, null, 4))
 }
 
-function saveHighscore(userID, streak) {
-    data = require('./data/userdata.json')
+export function saveHighscore(userID: string, streak: number): boolean {
+    data = JSON.parse(fs.readFileSync(getDataPath('userdata.json'), 'utf-8'))
 
-    let user = data.find(x => x.id === userID)
+    let user = data.find((x: UserData) => x.id === userID)
     if (user == null) {
-        addUser(userID, null, streak)
+        addUser(userID, 0, streak)
         return true
     } else {
         let newhs = (user.streak < streak)

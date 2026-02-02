@@ -8,7 +8,7 @@ consoleStamp(console, { format: config.logFormat });
 
 const rest = new REST({ version: '9' }).setToken(config.token);
 
-let commandList = [];
+let commandList: SlashCommandBuilder[] = [];
 
 commands.forEach(command => {
     let slashCommand = new SlashCommandBuilder().setName(command.name).setDescription(command.description);

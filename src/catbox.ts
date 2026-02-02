@@ -3,7 +3,11 @@ import { Client, GatewayIntentBits } from 'discord.js';
 import pluralize from 'pluralize';
 import config from '../config/config.json';
 import handleCommand from './utilities/commandHandler';
+import { initializeDataFiles } from './utilities/initData';
 consoleStamp(console, { format: config.logFormat });
+
+// Initialize data files with sensible defaults if they don't exist
+initializeDataFiles();
 
 const client = new Client( {
         intents: [

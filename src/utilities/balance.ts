@@ -1,25 +1,15 @@
+import { getBalance as dbGetBalance, changeBalance as dbChangeBalance } from './database';
 
-export function getBalance(userID) {
-    data = require('./data/userdata.json')
-
-    let user = data.find(x => x.id === userID)
-    return (user == null) ? 0 : user.balance
+export interface UserData {
+    id: string;
+    balance: number;
+    streak: number;
 }
 
-export function changeBalance(userID, amount, callback) {
-    data = require('./data/userdata.json')
+export function getBalance(userID: string): number {
+    return dbGetBalance(userID);
+}
 
-    let user = data.find(x => x.id === userID)
-
-    if (user !== undefined) {
-        user.balance += amount
-    } else {
-        addUser(userID, amount)
-    }
-
-    saveData()
-
-    if (callback !== undefined) {
-        callback()
-    }
+export function changeBalance(userID: string, amount: number): void {
+    dbChangeBalance(userID, amount);
 }

@@ -4,9 +4,12 @@
   "scripts": {
     "start": "tsc && node dist/src/catbox.js",
     "deploy": "tsc && node dist/src/deployCommands.js",
-    "build": "tsc"
+    "build": "tsc",
+    "migrate": "tsc && node dist/src/migrate.js"
   },
   "dependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "better-sqlite3": "^12.6.2",
     "console-stamp": "^3.1.2",
     "discord.js": "^14.14.1",
     "pluralize": "^8.0.0"

@@ -1,32 +1,21 @@
-function addUser(userID, balance, streak) {
-    data = require('./data/userdata.json')
+import { addUser as dbAddUser, saveHighscore as dbSaveHighscore } from './database';
 
-    if (data.find(x => x.id === userID) == null) {
-        data.push({
-            id: userID,
-            balance: (balance == null) ? 0 : balance,
-            streak: (streak == null) ? 0 : streak
-        })
-
-        saveData()
-    }
+export interface UserData {
+    id: string;
+    balance: number;
+    streak: number;
 }
 
-function saveData() {
-    file.writeFile('./data/userdata.json', JSON.stringify(data, null, 4), () => {})
+export function addUser(userID: string, balance?: number, streak?: number): void {
+    dbAddUser(userID, balance ?? 0, streak ?? 0);
 }
 
-function saveHighscore(userID, streak) {
-    data = require('./data/userdata.json')
+// Deprecated: saveData is no longer needed with SQLite as writes are immediate
+// Kept for backward compatibility but does nothing
+export function saveData(): void {
+    // SQLite writes are immediate, no need to save
+}
 
-    let user = data.find(x => x.id === userID)
-    if (user == null) {
-        addUser(userID, null, streak)
-        return true
-    } else {
-        let newhs = (user.streak < streak)
-        user.streak = (newhs) ? streak : user.streak
-        saveData()
-        return newhs
-    }
+export function saveHighscore(userID: string, streak: number): boolean {
+    return dbSaveHighscore(userID, streak);
 }

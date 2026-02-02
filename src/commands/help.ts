@@ -2,7 +2,7 @@ import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import commands from '../../config/commands.json';
 import config from '../../config/config.json';
 
-export default function handle(interaction: ChatInputCommandInteraction) {
+export default function (interaction: ChatInputCommandInteraction) {
     let embed = new EmbedBuilder()
     .setAuthor({ name: `${config.name}'s Commands`, iconURL: interaction.client.user.avatarURL({ size: 32 }) ?? undefined })
     .setColor(config.embedColor);

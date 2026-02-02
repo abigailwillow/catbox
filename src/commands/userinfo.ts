@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction, EmbedBuilder, GuildMember, User } from "discord.js";
 
-export default function handle(interaction: ChatInputCommandInteraction) {
+export default function (interaction: ChatInputCommandInteraction) {
     const mentionable = interaction.options.getMentionable('user');
 
     if (mentionable instanceof User || mentionable instanceof GuildMember) {

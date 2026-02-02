@@ -2,7 +2,7 @@ import consoleStamp from 'console-stamp';
 import { Client, GatewayIntentBits } from 'discord.js';
 import pluralize from 'pluralize';
 import config from '../config/config.json';
-import { handle } from './utilities/commandHandler';
+import handleCommand from './utilities/commandHandler';
 consoleStamp(console, { format: config.logFormat });
 
 const client = new Client( {
@@ -24,7 +24,7 @@ client.once('clientReady', client => {
 
 client.on('interactionCreate', interaction => {
     if (interaction.isCommand() && (process.env.MAINTENANCE === 'false' || interaction.commandName === 'maintenance')) {
-        handle(interaction);
+        handleCommand(interaction);
     }
 });
 

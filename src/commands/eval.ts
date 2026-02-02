@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction } from "discord.js";
 
-export default function handle(interaction: ChatInputCommandInteraction, code: string) {
+export default function (interaction: ChatInputCommandInteraction, code: string) {
     try {
         eval(code);
     } catch (error) {

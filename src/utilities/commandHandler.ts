@@ -5,11 +5,11 @@ import commands from '../../config/commands.json';
 import config from '../../config/config.json';
 import localization from '../../resources/localization.json';
 
-export function handle(interaction: CommandInteraction) {
-    const commandLogic = path.join(__dirname, '..', 'commands', interaction.commandName + '.js');
-    if (file.existsSync(commandLogic)) {
+export default function (interaction: CommandInteraction) {
+    const commandFunction = path.join(__dirname, '..', 'commands', interaction.commandName + '.js');
+    if (file.existsSync(commandFunction)) {
         try {
-            const command = require(commandLogic);
+            const command = require(commandFunction);
             const commandConfig = commands.find(command => command.name === interaction.commandName)
             if (!commandConfig) {
                 interaction.reply('Sorry, no configuration is defined for this command.');
@@ -17,19 +17,19 @@ export function handle(interaction: CommandInteraction) {
             }
             if (commandConfig.operator) {
                 if (config.operators.includes(interaction.user.id)) {
-                    command.handle(interaction);
+                    command.default(interaction);
                 } else {
                     interaction.reply(localization.error.not_operator);
                 }
             } else {
                 if (commandConfig.administrator && interaction.inGuild()) {
                     if (interaction.member instanceof GuildMember && interaction.member.permissions.has(PermissionFlagsBits.Administrator) || config.operators.includes(interaction.user.id)) {
-                        command.handle(interaction);
+                        command.default(interaction);
                     } else {
                         interaction.reply(localization.error.no_permission);
                     }
                 } else {
-                    command.handle(interaction);
+                    command.default(interaction);
                 }
             }
         } catch (error: any) {
@@ -38,6 +38,6 @@ export function handle(interaction: CommandInteraction) {
         }
     } else {
         interaction.reply('Sorry, I couldn\'t figure out how to handle your command');
-        throw new Error(`${commandLogic} file not found in commands directory.`);
+        throw new Error(`${commandFunction} file not found in commands directory.`);
     }
 }

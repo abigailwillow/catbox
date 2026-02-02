@@ -1,8 +1,8 @@
-import { CommandInteraction, EmbedBuilder } from 'discord.js';
+import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import commands from '../../config/commands.json';
 import config from '../../config/config.json';
 
-export default function handle(interaction: CommandInteraction) {
+export default function handle(interaction: ChatInputCommandInteraction) {
     let embed = new EmbedBuilder()
     .setAuthor({ name: 'Catbox\'s Commands', iconURL: interaction.client.user.avatarURL({ size: 32 }) ?? undefined })
     .setColor(config.embedColor);

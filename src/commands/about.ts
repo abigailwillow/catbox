@@ -1,7 +1,7 @@
-import { CommandInteraction, EmbedBuilder } from 'discord.js';
+import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import config from '../../config/config.json';
 
-export async function handle (interaction: CommandInteraction) {
+export async function handle (interaction: ChatInputCommandInteraction) {
     const author = await interaction.client.users.fetch(config.author);
     const operator = await interaction.client.users.fetch(config.operators[1]);
     let embed = new EmbedBuilder()

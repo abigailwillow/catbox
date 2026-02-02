@@ -45,28 +45,6 @@
 		"operator": false
 	},
 	{
-		"name": "config",
-		"alias": "cfg",
-		"description": "Customise attributes of the Catbox on the fly",
-		"category": "Admin",
-		"arguments": [
-			{
-				"name": "attribute",
-				"type": "string",
-				"description": "The configuration attribute to change",
-				"required": true
-			},
-			{
-				"name": "value",
-				"type": "string",
-				"description": "The new value for the attribute",
-				"required": false
-			}
-		],
-		"administrator": true,
-		"operator": false
-	},
-	{
 		"name": "ping",
 		"description": "Check Catbox's current latency.",
 		"arguments": [],

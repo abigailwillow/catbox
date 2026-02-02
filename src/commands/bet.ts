@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, EmbedBuilder, TextChannel } from 'discord.js';
+import { ChatInputCommandInteraction, EmbedBuilder, TextChannel, Client } from 'discord.js';
 import pluralize from 'pluralize';
 import { getBalance, changeBalance } from '../utilities/balance';
 import config from '../../config/config.json';
@@ -53,14 +53,14 @@ export default function (interaction: ChatInputCommandInteraction) {
         interaction.reply(`**${user.username}** just started a betting round with ${pluralize('cat', amount, true)}! You have ${betRound.roundTime} seconds to join in!`);
         interaction.fetchReply().then(msg => {
             if (interaction.channel && interaction.channel instanceof TextChannel) {
-                interaction.channel.send({ embeds: [generateRoundEmbed()] }).then(roundMsg => {
+                interaction.channel.send({ embeds: [generateRoundEmbed(interaction.client)] }).then(roundMsg => {
                     const IID = setInterval(() => { 
-                        roundMsg.edit({ embeds: [generateRoundEmbed()] });
+                        roundMsg.edit({ embeds: [generateRoundEmbed(interaction.client)] });
                     }, betRound.roundInterval * 1000);
                     
                     setTimeout(() => {
                         clearInterval(IID);
-                        roundMsg.edit({ embeds: [generateRoundEmbed()] });
+                        roundMsg.edit({ embeds: [generateRoundEmbed(interaction.client)] });
 
                         let winner: string | undefined = undefined;
                         let winNum = Math.random();
@@ -90,7 +90,7 @@ export default function (interaction: ChatInputCommandInteraction) {
     }
 }
 
-function generateRoundEmbed(): EmbedBuilder {
+function generateRoundEmbed(client: Client): EmbedBuilder {
     let pList = '';
     const embed = new EmbedBuilder()
         .setAuthor({
@@ -101,7 +101,8 @@ function generateRoundEmbed(): EmbedBuilder {
     
     Object.keys(betRound.players).forEach(ply => {
         const curAmount = betRound.players[ply];
-        pList += `${pluralize('cat', curAmount, true)} (${((curAmount / betRound.total) * 100).toFixed(2)}%) - **${ply}**\n`;
+        const username = client.users.cache.get(ply)?.username || ply;
+        pList += `${pluralize('cat', curAmount, true)} (${((curAmount / betRound.total) * 100).toFixed(2)}%) - **${username}**\n`;
     });
     
     embed.setDescription(pList);

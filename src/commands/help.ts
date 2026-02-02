@@ -1,24 +1,43 @@
-command.linkCommand('help', msg => {
-    let categories = []
-    Object.keys(cmds).forEach(cmd => {
-        if (!categories.includes(cmds[cmd].category) && cmds[cmd].admin !== 2) { categories.push(cmds[cmd].category) }
-    })
+import { CommandInteraction, EmbedBuilder } from 'discord.js';
+import commands from '../../config/commands.json';
+import config from '../../config/config.json';
+
+export default function handle(interaction: CommandInteraction) {
     let embed = new EmbedBuilder()
-    .setAuthor({
-        name: 'Catbox Commands',
-        iconURL: 'https://media.discordapp.net/attachments/1467535812391473203/1467549353895002142/youwhat.png?ex=6980c957&is=697f77d7&hm=f27f8414a1627bb833827e2a1144b7445096b9cdec5aca45876a930585f2d362'
-    })
-    .setColor(config.embedColor)
-    .setTimestamp()
-    categories.forEach(cat => {
-        let txt = ''
-        Object.keys(cmds).forEach(cmd => {
-            if (cmds[cmd].category === cat && cmds[cmd].admin !== 2)
-            {
-                txt += `\`${config.prefix}${cmd} ${String(cmds[cmd].args).replace(',',' ')}\`­­­­­­­­­­­­­­­\n${cmds[cmd].tip}\n`
+    .setAuthor({ name: 'Catbox\'s Commands', iconURL: interaction.client.user.avatarURL({ size: 32 }) ?? undefined })
+    .setColor(config.embedColor);
+
+    let categories: string[] = [];
+    commands.forEach(command => {
+        let category = command.category;
+        if (!categories.includes(category) && !command.operator) { 
+            categories.push(category);
+        };
+    });
+
+    categories.forEach(category => {
+        let commandsLabel = '';
+        let argumentsLabel = '';
+        let descriptionLabel = '';
+        commands.forEach(command => {
+            if (command.category === category && !command.operator) {
+                commandsLabel += '`/' + command.name + '`\n';
+                descriptionLabel += command.description + '\n';
+                if (command.arguments.length > 0) {
+                    command.arguments.forEach(argument => {
+                        argumentsLabel += '`' + argument.type + '` ';
+                    });
+                } else {
+                   argumentsLabel += 'none'; 
+                }
+                argumentsLabel += '\n';
             }
-        })
-        embed.addFields({ name: cat + ' commands', value: txt })
-    })
-    msg.channel.send({ embeds: [embed] })
-})
+        });
+        embed.addFields(
+            { name: category + ' Commands', value: commandsLabel, inline: true },
+            { name: 'Arguments', value: argumentsLabel, inline: true },
+            { name: 'Description', value: descriptionLabel, inline: true },
+        );
+    });
+    interaction.reply({ embeds: [embed]});
+};

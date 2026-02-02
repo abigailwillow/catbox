@@ -38,7 +38,7 @@ command.linkCommand('guess', (msg, guess) => {
 //         name: `Guessing Round - Total: ${pluralize('cat', temp.guessRound.total, true)}`,
 //         iconURL: 'https://media.discordapp.net/attachments/1467535812391473203/1467549353895002142/youwhat.png?ex=6980c957&is=697f77d7&hm=f27f8414a1627bb833827e2a1144b7445096b9cdec5aca45876a930585f2d362'
 //     })
-//     .setColor(config.embedcolor)
+//     .setColor(config.embedColor)
 //     if (temp.guessRound.guessed[0] !== undefined && temp.guessRound.guessed[0] !== null) {
 //         let nums = temp.guessRound.guessed.sort((a, b) => a - b)
 //         for (let i = 0; i < nums.length - 1; i++) {

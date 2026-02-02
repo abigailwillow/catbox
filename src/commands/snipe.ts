@@ -22,7 +22,7 @@ command.linkCommand('snipe', (msg, option) => {
 
     if (curSnipeArray.length > 0) {
         let embed = new EmbedBuilder()
-        .setColor(config.embedcolor)
+        .setColor(config.embedColor)
         .setAuthor({ name: 'SNIPED! Here\'s a list of recently deleted messages.' })
         .setTimestamp()
         curSnipeArray.forEach(m => {

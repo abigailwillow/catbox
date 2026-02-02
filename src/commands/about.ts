@@ -7,7 +7,7 @@ export async function handle (interaction: CommandInteraction) {
     let embed = new EmbedBuilder()
         .setTitle('About Catbox')
         .setURL('https://github.com/abigailwillow/catbox')
-        .setColor(config.embedcolor)
+        .setColor(config.embedColor)
         .setAuthor({
             name: `${author.username} and ${operator.username}`,
             iconURL: author.displayAvatarURL()

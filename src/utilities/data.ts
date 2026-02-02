@@ -1,43 +1,21 @@
-import * as fs from 'fs';
-import { getDataPath } from './initData';
+import { addUser as dbAddUser, saveHighscore as dbSaveHighscore } from './database';
 
-interface UserData {
+export interface UserData {
     id: string;
     balance: number;
     streak: number;
 }
 
-let data: UserData[] = [];
-
 export function addUser(userID: string, balance?: number, streak?: number): void {
-    data = JSON.parse(fs.readFileSync(getDataPath('userdata.json'), 'utf-8'))
-
-    if (data.find((x: UserData) => x.id === userID) == null) {
-        data.push({
-            id: userID,
-            balance: (balance == null) ? 0 : balance,
-            streak: (streak == null) ? 0 : streak
-        })
-
-        saveData()
-    }
+    dbAddUser(userID, balance ?? 0, streak ?? 0);
 }
 
+// Deprecated: saveData is no longer needed with SQLite as writes are immediate
+// Kept for backward compatibility but does nothing
 export function saveData(): void {
-    fs.writeFileSync(getDataPath('userdata.json'), JSON.stringify(data, null, 4))
+    // SQLite writes are immediate, no need to save
 }
 
 export function saveHighscore(userID: string, streak: number): boolean {
-    data = JSON.parse(fs.readFileSync(getDataPath('userdata.json'), 'utf-8'))
-
-    let user = data.find((x: UserData) => x.id === userID)
-    if (user == null) {
-        addUser(userID, 0, streak)
-        return true
-    } else {
-        let newhs = (user.streak < streak)
-        user.streak = (newhs) ? streak : user.streak
-        saveData()
-        return newhs
-    }
+    return dbSaveHighscore(userID, streak);
 }

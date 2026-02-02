@@ -1,6 +1,7 @@
 import { ChatInputCommandInteraction, EmbedBuilder, GuildMember } from 'discord.js';
 import pluralize from 'pluralize';
 import config from '../../config/config.json';
+import { getAllUsers } from '../utilities/database';
 
 interface UserData {
     id: string;
@@ -9,7 +10,7 @@ interface UserData {
 }
 
 export default function (interaction: ChatInputCommandInteraction) {
-    const data: UserData[] = require('../../data/userdata.json');
+    const data: UserData[] = getAllUsers();
     
     if (!interaction.guild) {
         interaction.reply('This command can only be used in a server.');
